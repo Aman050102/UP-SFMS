@@ -24,32 +24,54 @@ from .models import CheckinEvent, BorrowRecord, Equipment
 User = get_user_model()
 
 # =============================================================================
+# Constants
+# =============================================================================
+FACULTIES: List[str] = [
+    "คณะเกษตรศาสตร์และทรัพยากรธรรมชาติ",
+    "คณะพลังงานและสิ่งแวดล้อม",
+    "คณะเทคโนโลยีสารสนเทศและการสื่อสาร",
+    "คณะพยาบาลศาสตร์",
+    "คณะแพทยศาสตร์",
+    "คณะทันตแพทยศาสตร์",
+    "คณะสาธารณสุขศาสตร์",
+    "คณะเภสัชศาสตร์",
+    "คณะสหเวชศาสตร์",
+    "คณะวิศวกรรมศาสตร์",
+    "คณะวิทยาศาสตร์",
+    "คณะวิทยาศาสตร์การแพทย์",
+    "คณะรัฐศาสตร์และสังคมศาสตร์",
+    "คณะนิติศาสตร์",
+    "คณะบริหารธุรกิจและนิเทศศาสตร์",
+    "คณะศิลปศาสตร์",
+    "คณะสถาปัตยกรรมศาสตร์และศิลปกรรมศาสตร์",
+    "วิทยาลัยการศึกษา",
+]
+
+# จำผู้ยืมล่าสุดไว้ เพื่อให้หน้าคืนดึงอัตโนมัติ
+SESSION_LAST_SID = "last_student_id"
+SESSION_LAST_FAC = "last_faculty"
+
+# =============================================================================
 # Helpers / Session flag (สระว่ายน้ำ)
 # =============================================================================
 POOL_LOCK_KEY = "pool_locked"
-
 
 def _lock_pool(request: HttpRequest) -> None:
     request.session[POOL_LOCK_KEY] = True
     request.session.modified = True
 
-
 def _unlock_pool(request: HttpRequest) -> None:
     request.session[POOL_LOCK_KEY] = False
     request.session.modified = True
 
-
 def _is_pool_locked(request: HttpRequest) -> bool:
     return bool(request.session.get(POOL_LOCK_KEY, False))
-
 
 def _is_staff(user: Any) -> bool:
     return bool(user and (user.is_staff or user.is_superuser))
 
-
 def _json_bad(msg: str, code: int = 400) -> JsonResponse:
     return JsonResponse({"ok": False, "message": msg}, status=code)
-
 
 # =============================================================================
 # Login / Logout / Consoles
@@ -57,14 +79,12 @@ def _json_bad(msg: str, code: int = 400) -> JsonResponse:
 def login_page(request: HttpRequest) -> HttpResponse:
     return render(request, "registration/login.html")
 
-
 @login_required
 def staff_console(request: HttpRequest) -> HttpResponse:
     if not _is_staff(request.user):
         return HttpResponse("Forbidden", status=403)
     display_name = request.user.get_full_name() or request.user.username or "เจ้าหน้าที่"
     return render(request, "staff_console.html", {"display_name": display_name})
-
 
 @login_required
 def user_menu(request: HttpRequest) -> HttpResponse:
@@ -74,7 +94,6 @@ def user_menu(request: HttpRequest) -> HttpResponse:
         "user_menu.html",
         {"display_name": display_name, "pool_locked": _is_pool_locked(request)},
     )
-
 
 def mock_login(request: HttpRequest) -> HttpResponse:
     """เดโม่ลอกอิน: /auth/?role=staff หรือ /auth/?role=user"""
@@ -90,11 +109,9 @@ def mock_login(request: HttpRequest) -> HttpResponse:
     _unlock_pool(request)
     return redirect("staff_console" if role == "staff" else "user_menu")
 
-
 def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     return redirect("login")
-
 
 # =============================================================================
 # หน้าเลือกสนาม/เช็คอิน (ผู้ใช้)
@@ -110,16 +127,14 @@ def choose(request: HttpRequest) -> HttpResponse:
         )
     return render(request, "choose.html")
 
-
 def _create_event(request: HttpRequest, facility: str, action: str, sub: str = "") -> CheckinEvent:
     return CheckinEvent.objects.create(
         user=request.user if request.user.is_authenticated else None,
         facility=facility,          # outdoor|badminton|pool|track
         action=action,              # in|out
-        sub_facility=sub or "",     # ✅ เก็บสนามย่อย
+        sub_facility=sub or "",     # เก็บสนามย่อย
         occurred_at=timezone.now(),
     )
-
 
 def _get_post_param(request: HttpRequest, key: str) -> str:
     val = request.POST.get(key)
@@ -131,13 +146,12 @@ def _get_post_param(request: HttpRequest, key: str) -> str:
     except Exception:
         return ""
 
-
 @require_POST
 @login_required
 def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadRequest:
     facility = (_get_post_param(request, "facility") or "").strip()
     action   = (_get_post_param(request, "action") or "").strip()
-    sub      = (_get_post_param(request, "sub") or "").strip()   # ✅ รับ sub จาก frontend
+    sub      = (_get_post_param(request, "sub") or "").strip()   # รับ sub จาก frontend
 
     if facility not in {"outdoor", "badminton", "pool", "track"}:
         return HttpResponseBadRequest("invalid facility")
@@ -158,7 +172,6 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     local_dt = timezone.localtime(evt.occurred_at)
     session_date = local_dt.date().isoformat()
 
-    # ✅ ระบุ role: staff => บุคลากร, non-staff/anonymous => นิสิต
     role = "staff" if (evt.user and evt.user.is_staff) else "student"
 
     return JsonResponse(
@@ -174,35 +187,26 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
         }
     )
 
-
 # Quick pool API (เดโม่)
 @login_required
 @csrf_exempt
 def pool_checkin(request: HttpRequest) -> JsonResponse:
     if request.method != "POST":
-        return JsonResponse(
-            {"status": "error", "message": "Invalid method"}, status=405
-        )
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
     _lock_pool(request)
     return JsonResponse({"status": "ok", "locked": True})
-
 
 @login_required
 @csrf_exempt
 def pool_checkout(request: HttpRequest) -> JsonResponse:
     if request.method != "POST":
-        return JsonResponse(
-            {"status": "error", "message": "Invalid method"}, status=405
-        )
+        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
     if not _is_pool_locked(request):
-        return JsonResponse(
-            {"status": "noop", "locked": False, "message": "Not checked in"}
-        )
+        return JsonResponse({"status": "noop", "locked": False, "message": "Not checked in"})
     _unlock_pool(request)
     request.session["pool_last_checkout_at"] = timezone.now().isoformat()
     request.session.modified = True
     return JsonResponse({"status": "ok", "locked": False, "message": "Checked out"})
-
 
 # =============================================================================
 # รายงานเช็คอิน (แสดงผล + API)
@@ -210,7 +214,6 @@ def pool_checkout(request: HttpRequest) -> JsonResponse:
 @login_required
 def checkin_report(request: HttpRequest) -> HttpResponse:
     return render(request, "checkin_report.html")
-
 
 @login_required
 def api_checkins(request: HttpRequest) -> JsonResponse:
@@ -256,7 +259,6 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
         )
     return JsonResponse(rows, safe=False)
 
-
 # =============================================================================
 # ยืม–คืนอุปกรณ์ (หน้า + API + สถิติ)
 # =============================================================================
@@ -266,9 +268,12 @@ def user_equipment(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "user_equipment.html",
-        {"equipments": items, "display_name": request.user.get_username()},
+        {
+            "equipments": items,
+            "display_name": request.user.get_username(),
+            "faculties": FACULTIES,
+        },
     )
-
 
 @login_required
 def equipment_return_page(request: HttpRequest) -> HttpResponse:
@@ -276,15 +281,17 @@ def equipment_return_page(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "equipment_return.html",
-        {"equipments": items, "display_name": request.user.get_username()},
+        {
+            "equipments": items,
+            "display_name": request.user.get_username(),
+        },
     )
-
 
 @require_POST
 @login_required
 def equip_borrow_api(request: HttpRequest) -> JsonResponse:
     """
-    รับ JSON: { "equipment": "<ชื่อ>", "qty": <int>, "student_id": "<str?>" }
+    รับ JSON: { "equipment": "<ชื่อ>", "qty": <int>, "student_id": "<str?>", "faculty": "<str?>" }
     ลด stock และคืนค่า stock ล่าสุด + บันทึก BorrowRecord
     """
     try:
@@ -292,6 +299,7 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
         name = (payload.get("equipment") or "").strip()
         qty = int(payload.get("qty", 1))
         student_id = (payload.get("student_id") or "").strip()
+        fac = (payload.get("faculty") or "").strip()
     except Exception:
         return JsonResponse({"message": "รูปแบบข้อมูลไม่ถูกต้อง"}, status=400)
 
@@ -302,9 +310,7 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
 
     eq = get_object_or_404(Equipment, name=name)
     if qty > eq.stock:
-        return JsonResponse(
-            {"message": f"สต็อก {eq.name} คงเหลือ {eq.stock} ไม่พอ"}, status=400
-        )
+        return JsonResponse({"message": f"สต็อก {eq.name} คงเหลือ {eq.stock} ไม่พอ"}, status=400)
 
     # หักสต็อก
     eq.stock -= qty
@@ -318,15 +324,22 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
         create_kwargs["student_id"] = student_id
     BorrowRecord.objects.create(**create_kwargs)
 
-    return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
+    # จำค่าไว้ใน session เพื่อให้หน้าคืนดึงอัตโนมัติ
+    if student_id:
+        request.session[SESSION_LAST_SID] = student_id
+        request.session.modified = True
+    if fac:
+        request.session[SESSION_LAST_FAC] = fac
+        request.session.modified = True
 
+    return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
 
 @require_POST
 @login_required
 def equip_return_api(request: HttpRequest) -> JsonResponse:
     """
     รับ JSON: { "equipment": "<ชื่อ>", "qty": <int>, "student_id": "<str?>" }
-    เพิ่ม stock กลับ (ถ้ามีเพดานรวมให้เคารพมัน) + บันทึก BorrowRecord
+    เพิ่ม stock กลับ + บันทึก BorrowRecord
     """
     try:
         payload = json.loads(request.body.decode("utf-8"))
@@ -357,8 +370,12 @@ def equip_return_api(request: HttpRequest) -> JsonResponse:
         create_kwargs["student_id"] = student_id
     BorrowRecord.objects.create(**create_kwargs)
 
-    return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
+    # อัปเดต session ล่าสุด (รองรับกรณีพิมพ์ SID ในหน้าคืน)
+    if student_id:
+        request.session[SESSION_LAST_SID] = student_id
+        request.session.modified = True
 
+    return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
 
 # --- สถิติการยืม-คืน ---
 def _parse_date(s: str | None) -> date:
@@ -368,7 +385,6 @@ def _parse_date(s: str | None) -> date:
         return date.fromisoformat(s)
     except Exception:
         return timezone.localdate()
-
 
 @login_required
 def user_borrow_stats(request: HttpRequest) -> HttpResponse:
@@ -384,7 +400,6 @@ def user_borrow_stats(request: HttpRequest) -> HttpResponse:
             or "ผู้ใช้งาน",
         },
     )
-
 
 @login_required
 def staff_borrow_stats(request: HttpRequest) -> HttpResponse:
@@ -402,7 +417,6 @@ def staff_borrow_stats(request: HttpRequest) -> HttpResponse:
             or "เจ้าหน้าที่",
         },
     )
-
 
 @login_required
 def api_borrow_stats(request: HttpRequest) -> JsonResponse:
@@ -430,7 +444,6 @@ def api_borrow_stats(request: HttpRequest) -> JsonResponse:
         }
     )
 
-
 @staff_member_required
 def export_borrow_stats_csv(request: HttpRequest) -> HttpResponse:
     api_resp: JsonResponse = api_borrow_stats(request)
@@ -450,7 +463,6 @@ def export_borrow_stats_csv(request: HttpRequest) -> HttpResponse:
     w.writerow(["รวมทั้งหมด", "", data["total"]])
     return resp
 
-
 # =============================================================================
 # หน้าจัดการอุปกรณ์ / บันทึกยืม-คืน (Staff UI)
 # =============================================================================
@@ -468,7 +480,6 @@ def staff_equipment(request: HttpRequest) -> HttpResponse:
         },
     )
 
-
 @login_required
 def staff_borrow_ledger(request: HttpRequest) -> HttpResponse:
     if not _is_staff(request.user):
@@ -483,12 +494,10 @@ def staff_borrow_ledger(request: HttpRequest) -> HttpResponse:
         },
     )
 
-
 # เพิ่ม view ให้ตรงกับ urls
 @login_required
 def badminton_booking(request: HttpRequest) -> HttpResponse:
     return HttpResponse("หน้าจองสนามแบดมินตัน (ผู้ใช้) – กำลังพัฒนา")
-
 
 @login_required
 def staff_badminton_booking(request: HttpRequest) -> HttpResponse:
@@ -496,10 +505,8 @@ def staff_badminton_booking(request: HttpRequest) -> HttpResponse:
         return HttpResponse("Forbidden", status=403)
     return HttpResponse("หน้าจองสนามแบดมินตัน (เจ้าหน้าที่) – กำลังพัฒนา")
 
-
 def health(request: HttpRequest) -> HttpResponse:
     return HttpResponse("OK")
-
 
 # =============================================================================
 # Staff Equipment CRUD APIs
@@ -511,7 +518,6 @@ def api_staff_equipments(request: HttpRequest) -> JsonResponse:
         return _json_bad("Forbidden", 403)
     qs = Equipment.objects.order_by("name").values("id", "name", "total", "stock")
     return JsonResponse({"ok": True, "rows": list(qs)})
-
 
 @login_required
 @require_http_methods(["POST", "PATCH", "DELETE"])
@@ -594,7 +600,6 @@ def api_staff_equipment_detail(request: HttpRequest, pk: int) -> JsonResponse:
     eq.delete()
     return JsonResponse({"ok": True})
 
-
 # =============================================================================
 # Staff Borrow Ledger API
 # =============================================================================
@@ -623,3 +628,53 @@ def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
             }
         )
     return JsonResponse({"ok": True, "rows": rows})
+
+# =============================================================================
+# User Pending Returns (AUTO)
+# =============================================================================
+@login_required
+@require_GET
+def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
+    """
+    คืนรายการค้างคืนเป็นกลุ่มต่ออุปกรณ์ของผู้ใช้
+    แหล่งอ้างอิง student_id (ลำดับความสำคัญ):
+      1) ?student_id=...
+      2) session['last_student_id']
+      3) request.user.username
+    faculty จะมาจาก session['last_faculty']
+    """
+    sid = (request.GET.get("student_id") or "").strip()
+    if not sid:
+        sid = (request.session.get(SESSION_LAST_SID) or "").strip()
+    if not sid:
+        sid = (request.user.username or "").strip()
+
+    if not sid:
+        return JsonResponse({"ok": True, "rows": [], "student_id": ""})
+
+    qs = BorrowRecord.objects.filter(student_id=sid).select_related("equipment")
+
+    agg: Dict[str, Dict[str, int]] = {}
+    for r in qs:
+        name = r.equipment.name if r.equipment else "-"
+        if name not in agg:
+            agg[name] = {"borrowed": 0, "returned": 0}
+        if r.action == "borrow":
+            agg[name]["borrowed"] += r.qty
+        elif r.action == "return":
+            agg[name]["returned"] += r.qty
+
+    rows = []
+    fac = request.session.get(SESSION_LAST_FAC, "")
+    for name, v in agg.items():
+        remaining = max(0, v["borrowed"] - v["returned"])
+        if remaining > 0:
+            rows.append({
+                "equipment": name,
+                "borrowed": v["borrowed"],
+                "remaining": remaining,
+                "faculty": fac,
+            })
+
+    rows.sort(key=lambda x: x["equipment"])
+    return JsonResponse({"ok": True, "rows": rows, "student_id": sid})

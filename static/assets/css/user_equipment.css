@@ -21,6 +21,30 @@ body[data-page="equipment"] {
     sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
+/* อินพุตพื้นฐานให้แมทช์กับ select */
+body[data-page="equipment"] .input {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  min-height: 44px;
+  font-weight: 600;
+  transition: border-color .18s, box-shadow .18s;
+}
+body[data-page="equipment"] .input:hover {
+  border-color: #d7cef4;
+}
+body[data-page="equipment"] .input:focus-visible {
+  outline: 0;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.18);
+}
+
+/* ย่อช่องให้พอดีบนจอแคบ */
+@media (max-width: 480px) {
+  body[data-page="equipment"] .field { margin: 12px 0; }
+}
 
 /* ===== Topbar responsive (โลโก้ + แถบบน ใช้ร่วมกับ user_header.css ได้) ===== */
 header.topbar {

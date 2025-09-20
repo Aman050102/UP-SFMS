@@ -54,6 +54,7 @@ urlpatterns = [
     path("api/equipment/return/", views.equip_return_api, name="equip_return_api"),
     path("api/equip/borrow/", views.equip_borrow_api, name="equip_borrow_api_alias"),
     path("api/equip/return/", views.equip_return_api, name="equip_return_api_alias"),
+    path("api/user/pending-returns/", views.api_user_pending_returns, name="api_user_pending_returns"),
 
     # ================ Healthcheck ================
     path("health/", views.health, name="health"),
@@ -67,3 +68,4 @@ if SUPABASE_ENABLED:
         path("api/admin/set-pin",    sup.api_admin_set_pin,   name="api_admin_set_pin"),
         path("api/current_presence", sup.api_current_presence, name="api_current_presence"),
     ]
+    
