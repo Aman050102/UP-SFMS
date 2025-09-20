@@ -1,0 +1,557 @@
+/* ===== Theme เฉพาะหน้า equipment ===== */
+body[data-page="equipment"] {
+  --bg: #ede7f6;
+  --bar: #c9a7ff;
+  --panel: #ffffff;
+  --text: #1f1b2e;
+  --muted: #6e6780;
+  --border: #e7e2f2;
+  --accent: #a777f1;
+  --accent-strong: #7c3aed;
+  --accent-strong-press: #6d2bdd;
+  --focus: #7c3aed;
+  --shadow: 0 14px 32px rgba(39, 20, 81, 0.1);
+
+  background: linear-gradient(180deg, var(--bar) 0 72px, var(--bg) 72px 100%);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Noto Sans Thai",
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Topbar responsive (โลโก้ + แถบบน ใช้ร่วมกับ user_header.css ได้) ===== */
+header.topbar {
+  position: sticky;
+  top: 0;
+  height: 92px;
+  padding-inline: max(16px, env(safe-area-inset-left))
+    max(16px, env(safe-area-inset-right));
+  z-index: 100;
+}
+.brand-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+}
+@media (min-width: 1440px) {
+  .brand-logo {
+    height: 84px;
+  }
+}
+@media (max-width: 980px) {
+  header.topbar {
+    height: 76px;
+  }
+  .brand-logo {
+    height: 58px;
+  }
+}
+@media (max-width: 640px) {
+  header.topbar {
+    height: 64px;
+  }
+  .brand-logo {
+    height: 48px;
+  }
+}
+/* ทำให้ลิงก์ .mode ดูเหมือนปุ่ม และคง style เดิม */
+.modebar .mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
+  color: inherit; /* ใช้สีตัวอักษรเดิม */
+  cursor: pointer;
+}
+
+/* ===== Layout (เต็มจอ + safe-area) ===== */
+body[data-page="equipment"] .wrap {
+  width: 100%;
+  max-width: none;
+  margin: 24px auto;
+  padding: 0 24px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  display: grid;
+  gap: 20px;
+  box-sizing: border-box;
+}
+body[data-page="equipment"] .grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.2vw, 24px);
+  width: 100%;
+}
+@media (max-width: 980px) {
+  body[data-page="equipment"] .grid {
+    grid-template-columns: 1fr;
+  }
+  body[data-page="equipment"] .panel {
+    padding: 18px;
+    border-radius: 20px;
+  }
+  body[data-page="equipment"] .wrap {
+    padding: 0 16px;
+  }
+}
+
+/* ===== Mode Switch ===== */
+body[data-page="equipment"] .modebar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+body[data-page="equipment"] .mode {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #cbb9f4;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  min-width: 120px;
+  transition:
+    background 0.2s,
+    transform 0.12s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+body[data-page="equipment"] .mode:hover {
+  background: #f6f0ff;
+}
+body[data-page="equipment"] .mode:active {
+  transform: translateY(1px);
+}
+body[data-page="equipment"] .mode[aria-selected="true"],
+body[data-page="equipment"] .mode.active {
+  background: #efe6ff;
+  border-color: #b89af8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 6px 16px rgba(124, 58, 237, 0.12);
+}
+body[data-page="equipment"] .mode:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ===== Panels ===== */
+body[data-page="equipment"] .panel {
+  background: var(--panel);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+body[data-page="equipment"] .panel-title {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+/* ===== Field ===== */
+body[data-page="equipment"] .field {
+  display: block;
+  margin: 16px 0;
+}
+body[data-page="equipment"] .field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* ===== Select ===== */
+body[data-page="equipment"] .select-wrap {
+  position: relative;
+}
+body[data-page="equipment"] select {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 600;
+  min-height: 44px;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+body[data-page="equipment"] select:hover {
+  border-color: #d7cef4;
+}
+body[data-page="equipment"] select:focus-visible {
+  outline: 0;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+body[data-page="equipment"] .caret {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #5a4b8a;
+  pointer-events: none;
+}
+
+/* ===== Qty ===== */
+body[data-page="equipment"] .qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body[data-page="equipment"] .qty input {
+  width: 96px;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 700;
+  min-height: 44px;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+  -moz-appearance: textfield;
+}
+body[data-page="equipment"] .qty input::-webkit-outer-spin-button,
+body[data-page="equipment"] .qty input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+body[data-page="equipment"] .qty input:focus-visible {
+  outline: 0;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+body[data-page="equipment"] .qty-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #d7c4ff;
+  color: #2d1e55;
+  font-size: 22px;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    filter 0.18s,
+    background 0.18s;
+}
+body[data-page="equipment"] .qty-btn:hover {
+  filter: brightness(1.03);
+}
+body[data-page="equipment"] .qty-btn:active {
+  transform: translateY(1px);
+}
+body[data-page="equipment"] .qty-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@media (max-width: 360px) {
+  body[data-page="equipment"] .qty input {
+    width: 84px;
+  }
+}
+
+/* ===== Stock ===== */
+body[data-page="equipment"] .stock-head {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 8px;
+  background: #d3b5ff;
+  color: #2a1466;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 900;
+}
+body[data-page="equipment"] .stock-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+body[data-page="equipment"] .stock-list li {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 8px;
+  align-items: center;
+  background: #f8f6ff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  transition:
+    transform 0.12s,
+    box-shadow 0.18s;
+}
+body[data-page="equipment"] .stock-list li:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(39, 20, 81, 0.08);
+}
+body[data-page="equipment"] .stock-list li b {
+  text-align: right;
+}
+
+/* ===== Confirm button ===== */
+body[data-page="equipment"] .center {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+body[data-page="equipment"] .confirm {
+  background: var(--accent-strong);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 22px;
+  font-weight: 900;
+  cursor: pointer;
+  min-height: 44px;
+  box-shadow: 0 8px 24px rgba(124, 51, 234, 0.25);
+  transition:
+    background 0.18s,
+    transform 0.12s,
+    box-shadow 0.2s;
+}
+body[data-page="equipment"] .confirm:hover {
+  box-shadow: 0 12px 28px rgba(124, 51, 234, 0.28);
+}
+body[data-page="equipment"] .confirm:active {
+  transform: translateY(1px);
+  background: var(--accent-strong-press);
+}
+body[data-page="equipment"] .confirm:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ===== Success Sheet ===== */
+body[data-page="equipment"] .sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 16, 48, 0.18);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s,
+    visibility 0.18s;
+}
+body[data-page="equipment"] .sheet[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+body[data-page="equipment"] .sheet-card {
+  background: #e2e0e6;
+  border-radius: 28px;
+  padding: 48px 64px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transform: scale(0.96);
+  transition: transform 0.2s;
+}
+body[data-page="equipment"] .sheet[aria-hidden="false"] .sheet-card {
+  transform: scale(1);
+}
+body[data-page="equipment"] .sheet-title {
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 18px;
+}
+body[data-page="equipment"] .sheet-icon {
+  width: 84px;
+  height: 84px;
+  border: 6px solid #2b2640;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  font-weight: 900;
+  margin: 0 auto;
+}
+
+/* ===== Reduce motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="equipment"] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+/* ===== One Topbar + Safe-area + Scroll (แก้ซ้อน) ===== */
+:root {
+  /* สูงของท็อปบาร์แบบยืดหยุ่น (มือถือ/เดสก์ท็อป) */
+  --topbar-h: clamp(56px, 8vw, 92px);
+}
+
+/* ให้ gradient รองรับความสูง header ที่เปลี่ยนได้ */
+body[data-page="equipment"] {
+  background: linear-gradient(
+    180deg,
+    var(--bar) 0 var(--topbar-h),
+    var(--bg) var(--topbar-h) 100%
+  );
+}
+
+/* header ติดบน + เคารพ safe-area */
+header.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0);
+  height: var(--topbar-h);
+  z-index: 1000; /* สูงกว่า panel เพื่อไม่ถูกบัง */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 4vw, 32px);
+  gap: 12px;
+  background: rgba(95, 90, 162, 0.92);
+  color: #fff;
+  backdrop-filter: saturate(130%) blur(8px);
+  box-shadow: 0 10px 30px rgba(17, 12, 46, 0.18);
+}
+
+/* เติมระยะหายใจใต้ header เพื่อไม่ให้คอนเทนต์โดนทับ */
+body[data-page="equipment"] .wrap {
+  padding-top: 12px;
+  margin-top: 0;
+}
+
+/* ให้หน้าเลื่อนได้แน่ ๆ */
+html,
+body {
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+/* โลโก้ปรับตามความสูง header แบบอัตโนมัติ */
+.brand-logo {
+  height: calc(var(--topbar-h) - 12px);
+  width: auto;
+  object-fit: contain;
+}
+
+/* ป้องกันปุ่มใน header ล้นมาทับ panel */
+.righttools {
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== เมนูหลัก + dropdown (แก้ซ้อนบนมือถือ) ====== */
+.mainmenu {
+  position: relative;
+}
+.mainmenu > ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vw, 20px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.toplink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+}
+.has-sub {
+  position: relative;
+}
+.submenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 240px;
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  background: #fff;
+  color: #222;
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(17, 12, 46, 0.18);
+  display: grid;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity 0.18s,
+    transform 0.18s,
+    visibility 0.18s;
+  z-index: 2000; /* สูงกว่า header ปุ่ม */
+}
+.has-sub:hover .submenu,
+.has-sub:focus-within .submenu,
+.has-sub.open .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.submenu li a {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #2b2b2b;
+  text-decoration: none;
+}
+.submenu li a:hover,
+.submenu li a:focus-visible {
+  background: #f3f1fd;
+}
+
+/* ====== โหมดมือถือ: full-width ป้องกันเมนูหลุด/ซ้อน panel ====== */
+@media (max-width: 980px) {
+  header.topbar {
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .mainmenu {
+    width: 100%;
+  }
+  .mainmenu > ul {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .has-sub {
+    width: 100%;
+  }
+  .has-sub .toplink {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* ดรอปดาวน์กินความกว้างทั้งแถวและเลื่อนจากขอบหน้าจอ */
+  .has-sub .submenu {
+    position: relative;
+    top: 6px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 12px 24px rgba(17, 12, 46, 0.14);
+  }
+}
+
+/* ===== ปรับ grid/แผงให้เหมาะกับมือถือ (ลดโอกาสชน/ซ้อน) ===== */
+@media (max-width: 980px) {
+  body[data-page="equipment"] .grid {
+    grid-template-columns: 1fr;
+  }
+  body[data-page="equipment"] .panel {
+    padding: 18px;
+    border-radius: 20px;
+  }
+}

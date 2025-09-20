@@ -1,0 +1,962 @@
+:root {
+  /* สีอ้างอิงจาก UI ที่ให้ */
+  --up-purple: #8f73dd;
+
+  /* โทนพื้นหลัง/การ์ด/ข้อความ */
+  --bg: #efe8f7;
+  --card: #ffffff;
+  --text: #1d1b22;
+  --muted: #69636f;
+
+  /* ปุ่ม/CTA */
+  --btn: #e7e3f2;
+  --btn-active: #6f4ab4;
+  --btn-active-text: #ffffff;
+  --cta: #dcd8ea;
+  --cta-hover: #cfc7e8;
+
+  --divider: #e8e4ef;
+  --shadow: 0 10px 30px rgba(55, 36, 107, 0.12);
+  --radius: 18px;
+
+  /* ฟลูอิดไทโป + ระยะ */
+  --fs-title: clamp(2rem, 1.2rem + 2.2vw, 4rem); /* 32px–64px */
+  --fs-body: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem); /* 15–17.6px */
+  --space: clamp(16px, 2vw, 24px);
+  --space-lg: clamp(22px, 3vw, 36px);
+}
+
+/* รีเซ็ตเล็กน้อยและฟอนต์ระบบเพื่อความคมชัดทั้งเดสก์ทอป/โมบาย */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    "Noto Sans Thai",
+    "Noto Sans",
+    "Helvetica Neue",
+    Arial,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
+  font-size: var(--fs-body);
+  background: linear-gradient(
+    180deg,
+    var(--up-purple) 0 90px,
+    var(--bg) 90px 100%
+  );
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Topbar (รองรับ safe-area) ===== */
+.topbar {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  padding-inline: max(var(--space), env(safe-area-inset-left));
+  padding-right: max(var(--space), env(safe-area-inset-right));
+}
+
+.brand-small {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+
+.brand-mark {
+  width: 56px;
+  height: 32px;
+  border-radius: 8px;
+  background: #ffffff22;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+}
+.brand-mark::before,
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 45deg,
+    #fff0 0 25%,
+    #fff 0 35%,
+    #fff0 0 60%,
+    #fff 0 70%,
+    #fff0 0
+  );
+  opacity: 0.25;
+}
+
+/* ===== Layout กลางจอ (รองรับเดสก์ท็อป/โมบาย) ===== */
+.wrap {
+  display: grid;
+  place-items: center;
+  min-height: calc(100% - 90px);
+  padding: var(--space);
+  padding-left: max(var(--space), env(safe-area-inset-left));
+  padding-right: max(var(--space), env(safe-area-inset-right));
+}
+
+/* การ์ดยืดหยุ่น: max-width ฟลูอิด, ระยะ/มุมโค้งฟลูอิด */
+.card {
+  width: 100%;
+  max-width: clamp(560px, 88vw, 880px);
+  background: var(--card);
+  border-radius: clamp(20px, 2vw, 28px);
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 3vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 22px);
+}
+
+/* ===== Segmented (ปุ่มสลับบทบาท) ===== */
+.segmented {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  background: var(--card, #fff);
+  border: 1px solid var(--divider, #ece7f3);
+  border-radius: 12px;
+}
+.brand-logo {
+  height: 250px; /* ขนาดปกติ (desktop) */
+  width: auto;
+  object-fit: contain;
+}
+
+/* จอเล็ก (มือถือ ≤ 640px) */
+@media (max-width: 640px) {
+  .brand-logo {
+    height: 150px; /* ปรับโลโก้เป็น 150px บนมือถือ */
+  }
+}
+
+/* จอใหญ่มาก (≥ 1440px) */
+@media (min-width: 1440px) {
+  .brand-logo {
+    height: 300px; /* optional: ขยายอีกนิดถ้าเป็น desktop ใหญ่ */
+  }
+}
+/* ปุ่ม: ขนาดแตะ ≥ 44px เสมอ */
+.segmented [role="tab"],
+.segmented button {
+  position: relative;
+  padding: clamp(10px, 1.2vw, 12px) clamp(14px, 2vw, 18px);
+  min-height: 44px;
+  min-width: clamp(120px, 28vw, 220px);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  color: var(--muted, #6a6570);
+  border-radius: 10px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.05s ease;
+}
+.segmented button {
+  background: var(--btn);
+  color: var(--text);
+}
+.segmented button[aria-pressed="true"],
+.segmented [role="tab"][aria-selected="true"] {
+  background: var(--btn-active);
+  color: var(--btn-active-text);
+  font-weight: 600;
+}
+.segmented [role="tab"]:active,
+.segmented button:active {
+  transform: translateY(1px);
+}
+
+/* อินดิเคเตอร์ (ถ้าใช้สคริปต์เลื่อนความกว้าง/ตำแหน่ง) */
+.segmented .segmented-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  background: var(--up-purple, #6f4ab4);
+  border-radius: 2px;
+  transition:
+    transform 0.2s ease,
+    width 0.2s ease;
+}
+
+/* ป้ายล็อกบทบาท */
+.role-lock {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in oklab, var(--up-purple) 12%, #fff);
+  border: 1px dashed color-mix(in oklab, var(--up-purple) 55%, #fff);
+  color: var(--text);
+  border-radius: 10px;
+}
+.role-lock .lock-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--up-purple);
+}
+
+/* ===== โลโก้/ชื่อหน่วยงาน ===== */
+.logo-block {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 6px 0 8px;
+}
+
+.wordmark {
+  font-weight: 900;
+  font-size: var(--fs-title);
+  line-height: 1;
+  letter-spacing: 1.2px;
+  background: linear-gradient(90deg, #3a2c7a 0, #a67f2f 52%, #d2b273 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  font-size: clamp(12px, 0.9rem, 14px);
+  color: var(--muted);
+  text-align: center;
+}
+
+.divider {
+  height: 1px;
+  background: var(--divider);
+  margin-top: 6px;
+}
+
+/* ===== CTA เข้าสู่ระบบ ===== */
+.cta {
+  display: flex;
+  justify-content: center;
+}
+.cta button {
+  appearance: none;
+  border: 0;
+  background: var(--cta);
+  color: #222;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 16px 20px;
+  border-radius: 22px;
+  font-size: clamp(16px, 1rem + 0.2vw, 18px);
+  cursor: pointer;
+  min-width: clamp(240px, 60vw, 360px);
+  min-height: 48px; /* touch-friendly */
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+  transition:
+    filter 0.2s ease,
+    background 0.2s ease,
+    transform 0.05s ease;
+}
+.cta button:hover {
+  filter: brightness(0.98);
+  background: var(--cta-hover);
+}
+.cta button:active {
+  transform: translateY(1px);
+}
+
+/* ลิงก์ลืมรหัสผ่าน */
+.actions {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+}
+.forgot {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  color: #2c2a33;
+  text-decoration: none;
+  font-weight: 700;
+}
+.key {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+}
+.key::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  width: 8px;
+  height: 2px;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+
+/* พาเนลคอนเทนต์ */
+.panel {
+  display: none;
+}
+.panel[data-active="true"] {
+  display: block;
+}
+
+/* ===== เมเดียควิรี ===== */
+/* มือถือ ≤ 640px */
+/* ===== มือถือทั่วไป (≤640px): ย่อให้กระชับ แต่ยังแตะง่าย ===== */
+@media (max-width: 640px) {
+  .topbar {
+    height: 72px;
+    padding-inline: 12px;
+  }
+
+  .brand-small {
+    font-size: 14px;
+  }
+  .brand-mark {
+    width: 42px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .wrap {
+    padding: 16px;
+    min-height: calc(100% - 72px);
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 18px;
+    gap: 14px;
+  }
+
+  .logo-block {
+    gap: 6px;
+  }
+  .wordmark {
+    font-size: clamp(28px, 8vw, 40px);
+  }
+  .subtitle {
+    font-size: 12px;
+  }
+
+  /* segmented (ปุ่มเลือกบทบาท) */
+  .segmented {
+    gap: 6px;
+    padding: 6px;
+    width: 100%;
+  }
+  .segmented [role="tab"] {
+    padding: 10px 12px;
+    min-height: 40px; /* แตะง่าย */
+    font-size: 14px;
+  }
+  .segmented .segmented-indicator {
+    height: 2px;
+  }
+
+  .role-lock {
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* CTA */
+  .cta button {
+    width: 100%;
+    min-width: unset;
+    font-size: 16px;
+    padding: 12px 16px;
+    min-height: 44px;
+    border-radius: 18px;
+  }
+
+  /* ลิงก์ลืมรหัสผ่าน */
+  .forgot {
+    font-size: 13px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  .key {
+    width: 16px;
+    height: 16px;
+  }
+  .key::after {
+    right: -5px;
+    width: 7px;
+  }
+}
+
+/* ===== มือถือจอเล็กพิเศษ (≤360px): ย่อมากเป็นพิเศษ ===== */
+@media (max-width: 360px) {
+  .topbar {
+    height: 64px;
+    padding-inline: 10px;
+  }
+  .wrap {
+    padding: 12px;
+    min-height: calc(100% - 64px);
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 16px;
+    gap: 12px;
+  }
+
+  .wordmark {
+    font-size: clamp(24px, 9vw, 34px);
+  }
+  .subtitle {
+    font-size: 11px;
+  }
+
+  .segmented {
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .segmented [role="tab"] {
+    padding: 8px 10px;
+    min-height: 38px; /* ยังรักษา touch target */
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .cta button {
+    font-size: 15px;
+    padding: 10px 14px;
+    min-height: 42px;
+    border-radius: 16px;
+  }
+
+  .forgot {
+    font-size: 12px;
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .key {
+    width: 14px;
+    height: 14px;
+  }
+  .key::after {
+    right: -4px;
+    width: 6px;
+  }
+}
+
+/* ===== Ultra-Compact (≤320px): จอเล็กสุด ===== */
+@media (max-width: 320px) {
+  .topbar {
+    height: 56px;
+    padding-inline: 8px;
+  }
+
+  .brand-small {
+    font-size: 12px;
+    gap: 6px;
+  }
+  .brand-mark {
+    width: 36px;
+    height: 20px;
+    border-radius: 5px;
+  }
+
+  .wrap {
+    padding: 8px;
+    min-height: calc(100% - 56px);
+  }
+
+  .card {
+    padding: 10px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .logo-block {
+    gap: 4px;
+  }
+  .wordmark {
+    font-size: clamp(20px, 8vw, 28px);
+  }
+  .subtitle {
+    font-size: 10px;
+  }
+
+  /* segmented (ปุ่มเลือกบทบาท) */
+  .segmented {
+    gap: 3px;
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .segmented [role="tab"] {
+    padding: 6px 8px;
+    min-height: 34px; /* แตะได้ */
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .segmented .segmented-indicator {
+    height: 2px;
+  }
+
+  .role-lock {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .role-lock .lock-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* CTA */
+  .cta button {
+    font-size: 14px;
+    padding: 8px 12px;
+    min-height: 38px;
+    border-radius: 14px;
+    width: 100%;
+  }
+
+  /* ลิงก์ลืมรหัสผ่าน */
+  .forgot {
+    font-size: 11px;
+    padding: 4px 6px;
+    gap: 5px;
+  }
+  .key {
+    width: 12px;
+    height: 12px;
+  }
+  .key::after {
+    right: -3px;
+    width: 5px;
+    height: 1.5px;
+  }
+}
+/* ===== Extra Ultra-Compact (≤280px) ===== */
+@media (max-width: 280px) {
+  .topbar {
+    height: 52px;
+    padding-inline: 6px;
+  }
+  .wrap {
+    padding: 6px;
+    min-height: calc(100% - 52px);
+  }
+
+  .card {
+    padding: 8px;
+    border-radius: 12px;
+    gap: 8px;
+  }
+
+  .wordmark {
+    font-size: clamp(18px, 8.5vw, 24px);
+  }
+  .subtitle {
+    font-size: 9.5px;
+  }
+
+  .segmented {
+    gap: 2px;
+    padding: 2px;
+    border-radius: 7px;
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    padding: 6px 7px;
+    min-height: 32px; /* ยังเกิน 44px ไม่ได้ในจอ 240–280px: ให้ compensates ด้วย spacing รอบนอก */
+    font-size: 11px;
+    border-radius: 6px;
+    min-width: 84px; /* แคบลงกว่าของเดิม */
+  }
+  .segmented .segmented-indicator {
+    height: 2px;
+  }
+
+  .cta button {
+    font-size: 13px;
+    padding: 8px 10px;
+    min-height: 36px;
+    border-radius: 12px;
+    width: 100%;
+  }
+
+  .forgot {
+    font-size: 10.5px;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+  .key {
+    width: 11px;
+    height: 11px;
+  }
+  .key::after {
+    right: -3px;
+    width: 5px;
+  }
+}
+
+/* ===== แคบลงอีกนิดสำหรับ segmented (ทุกหน้าจอ) ===== */
+.segmented [role="tab"],
+.segmented button {
+  min-width: clamp(96px, 26vw, 200px); /* เดิม 120px → ยืดหยุ่นขึ้น */
+}
+
+/* ===== Safe-area ล่างสำหรับ CTA/คอนเทนต์ ===== */
+@supports (padding: max(0px)) {
+  .wrap {
+    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  }
+  .cta {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+/* ===== Super Tiny (≤260px) ===== */
+@media (max-width: 260px) {
+  .topbar {
+    height: 48px;
+    padding-inline: 4px;
+  }
+  .wrap {
+    padding: 6px;
+    min-height: calc(100% - 48px);
+  }
+  .card {
+    padding: 6px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .wordmark {
+    font-size: clamp(16px, 8vw, 22px);
+  }
+  .subtitle {
+    font-size: 9px;
+  }
+
+  .segmented {
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+    width: 100%;
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    padding: 4px 6px;
+    min-height: 30px; /* ต่ำสุดแล้วที่ยังแตะได้ */
+    font-size: 11px;
+    border-radius: 5px;
+    min-width: 70px; /* บีบลงได้อีก */
+  }
+
+  .cta button {
+    font-size: 12px;
+    padding: 6px 8px;
+    min-height: 34px;
+    border-radius: 12px;
+  }
+
+  .forgot {
+    font-size: 10px;
+    padding: 3px 5px;
+    gap: 4px;
+  }
+  .key {
+    width: 10px;
+    height: 10px;
+  }
+  .key::after {
+    right: -2px;
+    width: 4px;
+  }
+}
+
+/* ===== Ultra Tiny (≤240px) ===== */
+@media (max-width: 240px) {
+  .wordmark {
+    font-size: clamp(14px, 9vw, 20px);
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    min-width: 64px;
+    font-size: 10px;
+    padding: 4px 5px;
+  }
+  .cta button {
+    font-size: 11px;
+    min-height: 32px;
+    padding: 6px 8px;
+  }
+}
+/* ===== Nano (≤220px) ===== */
+@media (max-width: 220px) {
+  .topbar {
+    height: 44px;
+    padding-inline: 4px;
+  }
+  .wrap {
+    padding: 4px;
+    min-height: calc(100% - 44px);
+  }
+
+  .card {
+    max-width: 100%;
+    padding: 6px 8px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  /* โลโก้/ชื่อ */
+  .logo-block {
+    gap: 3px;
+  }
+  .wordmark {
+    font-size: clamp(14px, 9vw, 18px);
+    letter-spacing: 0.2px;
+  }
+  .subtitle {
+    display: none;
+  } /* ซ่อนเพื่อประหยัดที่ */
+
+  /* ปุ่มเลือกบทบาท: ให้เลื่อนข้าง แทนบีบตัวหนังสือ */
+  .segmented {
+    width: 100%;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    min-width: 56px;
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .segmented .segmented-indicator {
+    height: 2px;
+  }
+
+  .cta button {
+    width: 100%;
+    min-width: unset;
+    min-height: 30px;
+    padding: 6px 8px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+
+  .forgot {
+    font-size: 10px;
+    padding: 3px 5px;
+    gap: 4px;
+  }
+  .key {
+    width: 10px;
+    height: 10px;
+  }
+  .key::after {
+    right: -2px;
+    width: 4px;
+    height: 2px;
+  }
+}
+
+/* ===== Pico (≤200px) ===== */
+@media (max-width: 200px) {
+  .topbar {
+    height: 40px;
+  }
+  .wrap {
+    min-height: calc(100% - 40px);
+  }
+
+  /* สลับ segmented เป็นแนวตั้งให้กดง่ายขึ้น */
+  .segmented {
+    display: grid;
+    grid-auto-flow: row;
+    justify-items: stretch;
+    overflow: visible;
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    width: 100%;
+    min-width: 0;
+    min-height: 28px;
+    padding: 4px 6px;
+    text-align: center;
+  }
+
+  .cta button {
+    min-height: 28px;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+}
+
+/* ===== Femto (≤180px) ===== */
+@media (max-width: 180px) {
+  .topbar {
+    height: 36px;
+  }
+  .wrap {
+    min-height: calc(100% - 36px);
+  }
+
+  .card {
+    padding: 6px;
+    border-radius: 8px;
+    gap: 4px;
+  }
+
+  .wordmark {
+    font-size: clamp(12px, 8.5vw, 16px);
+  }
+  .role-lock {
+    display: none;
+  } /* ตัดป้ายล็อกเพื่อพื้นที่ */
+
+  .segmented {
+    gap: 2px;
+    padding: 2px;
+  }
+  .segmented [role="tab"],
+  .segmented button {
+    min-height: 26px;
+    padding: 3px 5px;
+    font-size: 10px;
+    border-radius: 4px;
+  }
+
+  .cta button {
+    min-height: 26px;
+    font-size: 10.5px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+
+  .forgot {
+    font-size: 9.5px;
+    padding: 2px 4px;
+    gap: 3px;
+  }
+}
+
+/* ===== Angstrom (≤160px) :: สุดทางจริง ๆ ===== */
+@media (max-width: 160px) {
+  /* บีบทุกอย่างแบบคุมทั้งหน้า: scale พร้อมรักษา layout */
+  body {
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+  .topbar {
+    height: 34px;
+  }
+  .wrap {
+    min-height: calc(100% - 34px);
+  }
+
+  .card {
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .segmented [role="tab"],
+  .segmented button {
+    min-height: 24px;
+    padding: 3px 4px;
+    font-size: 10px;
+  }
+  .cta button {
+    min-height: 24px;
+    font-size: 10px;
+  }
+}
+
+/* ตัวอักษรล้น: ป้องกันแตกบรรทัด */
+.logo-block,
+.segmented,
+.cta,
+.forgot {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* แท็บเล็ต 641–1023px */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .card {
+    max-width: clamp(640px, 86vw, 880px);
+  }
+}
+
+/* เดสก์ท็อป ≥ 1024px */
+@media (min-width: 1024px) {
+  .card {
+    padding: clamp(28px, 2.8vw, 36px);
+  }
+}
+
+/* โหมดมืด (ตามระบบปฏิบัติการ) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1a29;
+    --card: #221d2e;
+    --text: #f5f1ff;
+    --muted: #bcb4c7;
+    --btn: #2b243a;
+    --cta: #3a3051;
+    --cta-hover: #453663;
+    --divider: #382f48;
+  }
+  .brand-small {
+    color: #efe9ff;
+  }
+  .brand-mark {
+    background: #ffffff10;
+  }
+  .key {
+    color: #d8ccff;
+  }
+}
+
+/* ลด motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,118 @@
+/* ===== Modal (ยืนยัน Check out) ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #00000055;
+  display: none;
+  place-items: center;
+  z-index: 50;
+}
+.modal-backdrop[aria-hidden="false"] {
+  display: grid;
+}
+.modal-card {
+  width: min(400px, 90vw); /* เดิม 640 → 400 */
+  background: #fff;
+  color: #1d1b22;
+  border-radius: 20px; /* เดิม 28 → 20 */
+  padding: 24px 20px; /* เดิม 36x28 → 24x20 */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+.modal-title {
+  font-size: 28px; /* เดิม 40 → 28 */
+  font-weight: 800;
+  margin: 6px 0 16px;
+}
+.modal-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 10px; /* เล็กลง */
+  padding: 8px 14px; /* เดิม 12x18 → 8x14 */
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.btn-ok {
+  background: #a9f48a;
+  color: #113311;
+}
+.btn-cancel {
+  background: #ffa2a2;
+  color: #4a0d0d;
+}
+.btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ===== “สำเร็จ” sheet สีเขียว ===== */
+.sheet-ok {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  z-index: 60;
+}
+.sheet-ok[aria-hidden="false"] {
+  display: grid;
+}
+.sheet-card {
+  width: min(420px, 90vw); /* เดิม 720 → 420 */
+  background: #a9f48a;
+  color: #132;
+  text-align: center;
+  border-radius: 24px; /* เดิม 36 → 24 */
+  padding: 24px 20px; /* เดิม 36x24 → 24x20 */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  transform: translateY(16px);
+  transition: transform 0.2s ease;
+}
+.sheet-ok[aria-hidden="false"] .sheet-card {
+  transform: translateY(0);
+}
+.sheet-title {
+  font-size: 28px; /* เดิม 42 → 28 */
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 4px 0 10px;
+}
+.sheet-icon {
+  width: 52px; /* เดิม 68 → 52 */
+  height: 52px;
+  border: 4px solid #222;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 24px; /* เดิม 36 → 24 */
+  margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .modal-card {
+    background: #221d2e;
+    color: #f5f1ff;
+  }
+  .sheet-card {
+    background: #5bd25b;
+    color: #0c1c0c;
+  }
+  .btn-ok {
+    background: #7cf47c;
+    color: #0f2a0f;
+  }
+  .btn-cancel {
+    background: #ff8c8c;
+    color: #3a0b0b;
+  }
+}

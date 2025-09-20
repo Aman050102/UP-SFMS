@@ -1,0 +1,104 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+      type="image/png"
+    />
+    <title>กองกิจการนิสิต เข้าสู่ระบบ</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="กองกิจการนิสิต เข้าสู่ระบบ" />
+    <meta name="author" content="DSA SMART Team" />
+    <meta
+      name="keywords"
+      content="UP-FMS, UP Sports, University of Phayao, Sports Facility Management System, ระบบจัดการสนามกีฬา, ระบบยืมคืนอุปกรณ์กีฬา, ระบบจองสนามกีฬา, ระบบเช็คอินสนามกีฬา, ระบบเช็คเอาท์สนามกีฬา"
+    />
+    <meta name="robots" content="noindex,nofollow" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{% static 'assets/css/login.css' %}" />
+  </head>
+
+  <body>
+    <header class="topbar" aria-label="University Bar">
+      <div class="brand-small" aria-label="DQSD logo small">
+        <span>
+          <img
+            src="{% static 'img/logoDSASMART.png' %}"
+            alt="DSA"
+            height="100"
+          />
+        </span>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="card" role="region" aria-labelledby="login-title">
+        <!-- แท็บเลือกบทบาท -->
+        <div class="segmented" role="tablist" aria-label="ประเภทผู้ใช้">
+          <button
+            id="tab-staff"
+            role="tab"
+            aria-selected="true"
+            data-role="staff"
+          >
+            เจ้าหน้าที่
+          </button>
+          <button
+            id="tab-person"
+            role="tab"
+            aria-selected="false"
+            data-role="person"
+          >
+            นิสิต/บุคลากรทั่วไป
+          </button>
+          <span class="segmented-indicator" aria-hidden="true"></span>
+        </div>
+
+        <!-- โลโก้ -->
+        <div class="logo-block" aria-live="polite">
+          <img
+            src="{% static 'img/dsa.png' %}"
+            alt="ตรากองพัฒนาคุณภาพนิสิตและนิสิตพิการ"
+            class="brand-logo"
+          />
+        </div>
+
+        <div class="divider" role="separator" aria-hidden="true"></div>
+
+        <!-- ปุ่มเข้าสู่ระบบด้วย UP ACCOUNT -->
+        <div class="cta">
+          <button type="button" id="btn-continue">
+            เข้าสู่ระบบด้วย UP ACCOUNT
+          </button>
+        </div>
+
+        <!-- ลืมรหัสผ่าน -->
+        <div class="actions">
+          <a
+            class="forgot"
+            href="https://password.up.ac.th/"
+            target="_blank"
+            id="forgot-link"
+          >
+            <span class="key" aria-hidden="true"></span>
+            <span>ลืมรหัสผ่าน</span>
+          </a>
+        </div>
+
+        <!-- ป้ายแสดงบทบาท (JS จะอัปเดตให้) -->
+        <!-- <div id="role-label" class="role-lock" aria-live="polite">
+                <span class="lock-dot"></span> -->
+        <!-- <span>ล็อกบทบาท: เจ้าหน้าที่</span> -->
+        <!-- </div> -->
+      </section>
+    </main>
+
+    <!-- JS แยกไฟล์ -->
+    <script src="{% static 'js/login.js' %}"></script>
+  </body>
+</html>

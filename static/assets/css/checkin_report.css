@@ -1,0 +1,242 @@
+:root {
+  --purple: #c08af6;
+  --purple-100: #e9d8ff;
+  --bg: #efe8f7;
+  --card: #fff;
+  --text: #1d1b22;
+  --muted: #6a6570;
+  --divider: #ece7f3;
+  --shadow: 0 10px 30px rgba(55, 36, 107, 0.12);
+
+  --outdoor: #2e7d32;
+  --badminton: #1565c0;
+  --pool: #0f766e;
+  --track: #ef6c00;
+
+  --pill: #ead9ff;
+}
+
+/* ================= Layout หลัก ================= */
+main {
+  width: 100%;
+  min-height: calc(100% - 90px);
+  padding: 24px 32px;
+  display: grid;
+  gap: 24px;
+  background: var(--bg);
+}
+
+/* ================= Card ================= */
+.card {
+  background: var(--card);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+}
+
+/* ================= Toolbar ================= */
+.toolbar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+input[type="date"],
+select,
+input[type="text"],
+button {
+  padding: 10px 14px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  font-weight: 600;
+  background: #fff;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ================= Chips filter ================= */
+.chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 2px solid var(--divider);
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.chip small {
+  opacity: 0.85;
+  font-weight: 800;
+}
+
+.chip[data-k="all"] {
+  background: var(--pill);
+}
+
+.chip[data-k="outdoor"] {
+  color: var(--outdoor);
+}
+.chip[data-k="badminton"] {
+  color: var(--badminton);
+}
+.chip[data-k="pool"] {
+  color: var(--pool);
+}
+.chip[data-k="track"] {
+  color: var(--track);
+}
+
+.chip.selected {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ================= Chart ================= */
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: center;
+  justify-items: center;
+}
+
+.chart-actions {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.chart-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.chart-wrap canvas {
+  width: 420px; /* กราฟใหญ่ขึ้น */
+  aspect-ratio: 1/1;
+  max-width: 95vw;
+}
+
+/* ================= Stats ================= */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.stat {
+  background: #fff;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+}
+
+.stat small {
+  color: var(--muted);
+}
+
+.stat b {
+  font-size: 32px;
+}
+
+/* ================= Table ================= */
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-headband {
+  background: #d4b5fa;
+  color: #fff;
+  font-weight: 900;
+  padding: 16px 20px;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+}
+
+.table-wrap {
+  max-height: 65vh; /* ตารางสูงขึ้น เต็มหน้า */
+  overflow: auto;
+  border-top: 1px solid var(--divider);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: #f3effa;
+}
+
+th,
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+  font-size: 15px;
+}
+
+tbody tr:hover {
+  background: #faf9fc;
+}
+
+/* ================= Bigbox ================= */
+.bigbox {
+  background: #fff;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  padding: 22px 28px;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+}
+
+.bigbox b {
+  font-size: 44px;
+  display: block;
+  margin-top: 6px;
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 1200px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1a29;
+    --card: #221d2e;
+    --text: #f6f1ff;
+    --muted: #c7bfd3;
+    --divider: #3a304b;
+  }
+
+  thead th {
+    background: #2d2540;
+  }
+
+  .table-headband {
+    background: #7b5bb0;
+  }
+}

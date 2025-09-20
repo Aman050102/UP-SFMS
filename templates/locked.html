@@ -1,0 +1,70 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link
+      rel="icon"
+      href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+      type="image/png"
+    />
+    <title>ถูกจำกัดการใช้งาน</title>
+
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Noto Sans Thai",
+          sans-serif;
+        background: #efe8f7;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        height: 100vh;
+      }
+      .card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 16px 40px rgba(40, 22, 90, 0.12);
+        padding: 32px;
+        max-width: 560px;
+      }
+      .card h1 {
+        margin: 0 0 12px;
+        font-size: 26px;
+      }
+      .card p {
+        margin: 8px 0 16px;
+        color: #5a5661;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        text-decoration: none;
+        color: #222;
+        background: #f8f8ff;
+      }
+      .btn.primary {
+        background: #b1f29d;
+        border-color: #8dd57b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>ไม่สามารถดำเนินการต่อได้</h1>
+      <p>{{ reason }}</p>
+      <div class="row">
+        <a class="btn" href="{% url 'user_menu' %}">กลับเมนูผู้ใช้งาน</a>
+        <!-- ปุ่มนี้จะเปิดป๊อปอัพเช็คเอาต์ในหน้า user_menu อยู่แล้ว -->
+      </div>
+    </div>
+  </body>
+</html>
