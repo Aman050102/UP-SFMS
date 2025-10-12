@@ -1,18 +1,20 @@
-{% extends "layouts/basic.html" %}
-{% load static %}
-
-{% block title %}UP-FMS เช็คอิน{% endblock %}
-
-{% block extra_css %}
-<link rel="icon" href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}" type="image/png" />
+{% extends "layouts/basic.html" %} {% load static %} {% block title %}UP-FMS
+เช็คอิน{% endblock %} {% block extra_css %}
+<link
+  rel="icon"
+  href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+  type="image/png"
+/>
 <link rel="stylesheet" href="{% static 'assets/css/choose.css' %}" />
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="wrap" data-pool-locked="{{ pool_locked|yesno:'1,0' }}">
   <header class="topbar">
     <div class="brand">
-      <img src="{% static 'img/logoDSASMART.png' %}" alt="DSA" class="brand-logo" />
+      <img
+        src="{% static 'img/logoDSASMART.png' %}"
+        alt="DSA"
+        class="brand-logo"
+      />
     </div>
   </header>
 
@@ -33,7 +35,9 @@
     <!-- ชั้นที่ 2: เฉพาะ outdoor -->
     <section class="card hidden" id="panel-outdoor">
       <div class="toolbar">
-        <button class="btn" id="btnBack" type="button" aria-label="กลับ">&larr; กลับ</button>
+        <button class="btn" id="btnBack" type="button" aria-label="กลับ">
+          &larr; กลับ
+        </button>
         <span class="hint">เลือกชนิดสนามกลางแจ้ง</span>
       </div>
       <div class="grid" id="grid-outdoor"></div>
@@ -48,8 +52,6 @@
     <div class="ok-icon">✔️</div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{% static 'js/choose.js' %}" defer></script>
 {% endblock %}

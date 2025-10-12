@@ -102,7 +102,7 @@ async function load() {
   });
 
   renderCountsAndTable();
-  renderChart(); 
+  renderChart();
   updateBigBox();
 }
 
@@ -238,7 +238,9 @@ function renderChart() {
         datasets: [
           {
             data: totals,
-            backgroundColor: labels.map((_, i) => `hsl(${(i * 57) % 360} 70% 70%)`),
+            backgroundColor: labels.map(
+              (_, i) => `hsl(${(i * 57) % 360} 70% 70%)`,
+            ),
           },
         ],
       },
@@ -301,7 +303,7 @@ function rowsForExport() {
     arr.push({
       "วันที่ (session)": d,
       สนาม: FAC_NAME[f] || f,
-      "สนามย่อย": sub || "-",
+      สนามย่อย: sub || "-",
       กลุ่มผู้ใช้: role === "staff" ? "บุคลากร" : "นิสิต",
       จำนวน: n,
     });
@@ -338,7 +340,9 @@ $("#btnPDF").addEventListener("click", () => {
   );
   if (facilityFilter !== "all")
     doc.text(`สนาม: ${FAC_NAME[facilityFilter]}`, 40, 58);
-  const head = [["วันที่ (session)", "สนาม", "สนามย่อย", "กลุ่มผู้ใช้", "จำนวน"]];
+  const head = [
+    ["วันที่ (session)", "สนาม", "สนามย่อย", "กลุ่มผู้ใช้", "จำนวน"],
+  ];
   const body = data.map((r) => [
     r["วันที่ (session)"],
     r["สนาม"],
@@ -368,9 +372,13 @@ $("#btnDoc").addEventListener("click", async () => {
     HeadingLevel,
   } = docx;
   const arr = rowsForExport();
-  const head = ["วันที่ (session)", "สนาม", "สนามย่อย", "กลุ่มผู้ใช้", "จำนวน"].map(
-    (t) => new TableCell({ children: [new Paragraph({ text: t })] }),
-  );
+  const head = [
+    "วันที่ (session)",
+    "สนาม",
+    "สนามย่อย",
+    "กลุ่มผู้ใช้",
+    "จำนวน",
+  ].map((t) => new TableCell({ children: [new Paragraph({ text: t })] }));
   const trs = [new TableRow({ children: head })];
   arr.forEach((r) => {
     trs.push(

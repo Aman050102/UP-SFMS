@@ -14,8 +14,12 @@ body[data-page="equipment-return"] {
   -webkit-tap-highlight-color: transparent;
 }
 
-header.topbar { height: 92px; }
-.brand-logo  { height: 72px; }
+header.topbar {
+  height: 92px;
+}
+.brand-logo {
+  height: 72px;
+}
 
 /* ===== Layout ===== */
 .wrap {
@@ -40,7 +44,9 @@ header.topbar { height: 92px; }
   box-shadow: var(--shadow);
   padding: 18px;
 }
-.panel-title { margin: 0 0 12px; }
+.panel-title {
+  margin: 0 0 12px;
+}
 
 /* ===== Table ===== */
 .table {
@@ -80,7 +86,7 @@ header.topbar { height: 92px; }
   font-weight: 900;
   cursor: pointer;
   box-shadow: 0 8px 22px rgba(124, 51, 234, 0.24);
-  transition: transform .12s;
+  transition: transform 0.12s;
 }
 .returnBtn:active,
 .btn-return:active {
@@ -88,7 +94,11 @@ header.topbar { height: 92px; }
 }
 
 /* ===== Hint / Empty ===== */
-.hint { color: var(--muted); font-size: 14px; margin-top: 8px; }
+.hint {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 8px;
+}
 
 /* ===== Sheet (success) ===== */
 .sheet {
@@ -99,24 +109,40 @@ header.topbar { height: 92px; }
   place-items: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity .18s, visibility .18s;
+  transition:
+    opacity 0.18s,
+    visibility 0.18s;
 }
-.sheet[aria-hidden="false"] { opacity: 1; visibility: visible; }
+.sheet[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
 .sheet-card {
   background: #e2e0e6;
   border-radius: 28px;
   padding: 46px 60px;
   text-align: center;
-  transform: scale(.96);
-  transition: transform .2s;
+  transform: scale(0.96);
+  transition: transform 0.2s;
 }
-.sheet[aria-hidden="false"] .sheet-card { transform: scale(1); }
-.sheet-title { font-size: 40px; font-weight: 900; margin-bottom: 16px; }
-.sheet-icon  {
-  width: 80px; height: 80px;
-  border: 6px solid #2b2640; border-radius: 999px;
-  display: grid; place-items: center;
-  font-size: 36px; font-weight: 900; margin: 0 auto;
+.sheet[aria-hidden="false"] .sheet-card {
+  transform: scale(1);
+}
+.sheet-title {
+  font-size: 40px;
+  font-weight: 900;
+  margin-bottom: 16px;
+}
+.sheet-icon {
+  width: 80px;
+  height: 80px;
+  border: 6px solid #2b2640;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  font-weight: 900;
+  margin: 0 auto;
 }
 
 /* ===== Fancy Modebar Slider (ใช้กับสองหน้า) ===== */
@@ -138,15 +164,21 @@ header.topbar { height: 92px; }
   min-width: 120px;
   text-decoration: none;
   color: inherit;
-  transition: color .2s, background .2s, border-color .2s, transform .12s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.12s;
 }
-.modebar .mode:hover { background: #f6f0ff; }
+.modebar .mode:hover {
+  background: #f6f0ff;
+}
 .modebar .mode.active {
   background: #efe6ff;
   border-color: #b89af8;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.8),
-    0 6px 16px rgba(124,58,237,.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 6px 16px rgba(124, 58, 237, 0.12);
   color: #2a185f;
 }
 
@@ -160,18 +192,36 @@ header.topbar { height: 92px; }
   background: var(--accent);
   border-radius: 3px;
   transition:
-    left .28s cubic-bezier(.22,.61,.36,1),
-    width .28s cubic-bezier(.22,.61,.36,1);
+    left 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 960px) {
-  .table th, .table td { font-size: 14px; padding: 8px; }
-  .table td input[type="number"] { width: 70px; }
-  .modebar .mode { min-width: 110px; padding: 10px 14px; }
+  .table th,
+  .table td {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .table td input[type="number"] {
+    width: 70px;
+  }
+  .modebar .mode {
+    min-width: 110px;
+    padding: 10px 14px;
+  }
 }
 @media (max-width: 520px) {
-  .table th, .table td { font-size: 13px; padding: 6px; }
-  .table td input[type="number"] { width: 60px; }
-  .modebar .mode { min-width: 100px; padding: 8px 12px; }
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 6px;
+  }
+  .table td input[type="number"] {
+    width: 60px;
+  }
+  .modebar .mode {
+    min-width: 100px;
+    padding: 8px 12px;
+  }
 }

@@ -1,14 +1,14 @@
 // static/js/user_equipment.js
 (() => {
-  const $  = (s, el = document) => el.querySelector(s);
+  const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
   // ===== Elements =====
-  const sel         = $("#equipment");
-  const qty         = $("#qty");
-  const btnInc      = $$('.qty-btn[data-delta="1"]');
-  const btnDec      = $$('.qty-btn[data-delta="-1"]');
-  const btnConfirm  = $("#confirmBtn");
+  const sel = $("#equipment");
+  const qty = $("#qty");
+  const btnInc = $$('.qty-btn[data-delta="1"]');
+  const btnDec = $$('.qty-btn[data-delta="-1"]');
+  const btnConfirm = $("#confirmBtn");
   const sheetBorrow = $("#sheetBorrow");
 
   // ช่องผู้ใช้ (ต้องมี id="studentId" และ id="faculty" ใน HTML)
@@ -48,7 +48,7 @@
   }
   function updateRow(name, newLeft) {
     const li = $$("#stockList li").find(
-      (el) => $("span", el)?.textContent.trim() === name
+      (el) => $("span", el)?.textContent.trim() === name,
     );
     if (li) $("b", li).textContent = Number(newLeft).toLocaleString();
   }
@@ -69,16 +69,19 @@
       body: JSON.stringify(payload),
     });
     const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
+    if (!resp.ok)
+      throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
     return data;
   }
   function saveLastBorrowToSession({ sid, fac, itemName, qtyBorrow }) {
     // เก็บ “การยืมล่าสุด” เพื่อให้หน้าคืนไปดึงได้
     try {
       const raw = sessionStorage.getItem("lastBorrow");
-      const data = raw ? JSON.parse(raw) : { student_id: sid, faculty: fac, items: [] };
+      const data = raw
+        ? JSON.parse(raw)
+        : { student_id: sid, faculty: fac, items: [] };
       if (!data.student_id && sid) data.student_id = sid;
-      if (!data.faculty && fac)   data.faculty = fac;
+      if (!data.faculty && fac) data.faculty = fac;
 
       const idx = data.items.findIndex((x) => x.name === itemName);
       if (idx >= 0) data.items[idx].qty += qtyBorrow;
@@ -89,12 +92,16 @@
   }
 
   // ===== Events: + / - / validate =====
-  btnInc.forEach((b) => b.addEventListener("click", () => {
-    qty.value = String((parseInt(qty.value, 10) || 1) + 1);
-  }));
-  btnDec.forEach((b) => b.addEventListener("click", () => {
-    qty.value = String(Math.max(1, (parseInt(qty.value, 10) || 1) - 1));
-  }));
+  btnInc.forEach((b) =>
+    b.addEventListener("click", () => {
+      qty.value = String((parseInt(qty.value, 10) || 1) + 1);
+    }),
+  );
+  btnDec.forEach((b) =>
+    b.addEventListener("click", () => {
+      qty.value = String(Math.max(1, (parseInt(qty.value, 10) || 1) - 1));
+    }),
+  );
   qty.addEventListener("input", clampQty);
   qty.addEventListener("blur", clampQty);
 
@@ -102,13 +109,13 @@
   btnConfirm?.addEventListener("click", async () => {
     clampQty();
 
-    const sid  = inputSID?.value?.trim() || "";
-    const fac  = inputFAC?.value?.trim() || "";
+    const sid = inputSID?.value?.trim() || "";
+    const fac = inputFAC?.value?.trim() || "";
     const name = sel?.value?.trim();
-    const n    = parseInt(qty.value, 10) || 1;
+    const n = parseInt(qty.value, 10) || 1;
 
     if (!name) return alert("กรุณาเลือกอุปกรณ์");
-    if (!sid)  return alert("กรุณากรอกรหัสนิสิต");
+    if (!sid) return alert("กรุณากรอกรหัสนิสิต");
 
     // จำข้อมูลผู้ใช้ไว้ครั้งถัดไป
     try {
@@ -135,14 +142,15 @@
         });
 
         stock[name] =
-          typeof res.stock === "number" ? res.stock : Math.max(0, (stock[name] ?? 0) - n);
+          typeof res.stock === "number"
+            ? res.stock
+            : Math.max(0, (stock[name] ?? 0) - n);
         updateRow(name, stock[name]);
         openSheet(sheetBorrow);
       }
 
       // บันทึก “รายการยืมล่าสุด” ให้หน้าคืนดึงต่อได้
       saveLastBorrowToSession({ sid, fac, itemName: name, qtyBorrow: n });
-
     } catch (err) {
       console.error(err);
       alert(err.message || "ไม่สามารถทำรายการยืมได้");

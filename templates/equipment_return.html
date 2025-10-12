@@ -1,103 +1,128 @@
 {% load static %}
 <!doctype html>
 <html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  
-  <title>คืนอุปกรณ์กีฬา • UP-FMS</title>
-  <link rel="icon" href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}" type="image/png" />
-  <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
-  <link rel="stylesheet" href="{% static 'assets/css/user_header.css' %}" />
-  <link rel="stylesheet" href="{% static 'assets/css/equipment_return.css' %}" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <script defer src="{% static 'js/modebar.js' %}"></script>
-  <script defer src="{% static 'js/user_header.js' %}"></script>
-  <script defer src="{% static 'js/equipment_return.js' %}"></script>
-</head>
+    <title>คืนอุปกรณ์กีฬา • UP-FMS</title>
+    <link
+      rel="icon"
+      href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+      type="image/png"
+    />
+    <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/user_header.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/css/equipment_return.css' %}"
+    />
 
-<body data-page="equipment-return">
-  <header class="topbar">
-    <div class="brand">
-      <img src="{% static 'img/logoDSASMART.png' %}" alt="DSA" class="brand-logo" />
-    </div>
-    <nav class="mainmenu" aria-label="เมนูหลัก">
-      <ul>
-        <li><a class="toplink" href="{% url 'user_menu' %}">หน้าหลัก</a></li>
-        <li class="has-sub">
-          <details>
-            <summary class="toplink">
-              บริการ
-              <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-            </summary>
-            <ul class="submenu">
-              <li><a href="{% url 'choose' %}">เช็คอินเข้าสนาม</a></li>
-              <li><a href="{% url 'user_equipment' %}">ยืม-คืนอุปกรณ์กีฬา</a></li>
-              <li><a href="{% url 'badminton_booking' %}">จองสนามแบดมินตัน</a></li>
-            </ul>
-          </details>
-        </li>
-      </ul>
-    </nav>
-    <div class="righttools">
-      <span class="user-btn">{{ display_name }}</span>
-      <form action="{% url 'logout' %}" method="post" class="logout-form">
-        {% csrf_token %}
-        <button type="submit" class="logout" aria-label="ออกจากระบบ">ออกจากระบบ</button>
-      </form>
-    </div>
-  </header>
+    <script defer src="{% static 'js/modebar.js' %}"></script>
+    <script defer src="{% static 'js/user_header.js' %}"></script>
+    <script defer src="{% static 'js/equipment_return.js' %}"></script>
+  </head>
 
-  <main class="wrap">
-     <!-- โหมด -->
+  <body data-page="equipment-return">
+    <header class="topbar">
+      <div class="brand">
+        <img
+          src="{% static 'img/logoDSASMART.png' %}"
+          alt="DSA"
+          class="brand-logo"
+        />
+      </div>
+      <nav class="mainmenu" aria-label="เมนูหลัก">
+        <ul>
+          <li><a class="toplink" href="{% url 'user_menu' %}">หน้าหลัก</a></li>
+          <li class="has-sub">
+            <details>
+              <summary class="toplink">
+                บริการ
+                <svg class="caret" viewBox="0 0 24 24">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </summary>
+              <ul class="submenu">
+                <li><a href="{% url 'choose' %}">เช็คอินเข้าสนาม</a></li>
+                <li>
+                  <a href="{% url 'user_equipment' %}">ยืม-คืนอุปกรณ์กีฬา</a>
+                </li>
+                <li>
+                  <a href="{% url 'badminton_booking' %}">จองสนามแบดมินตัน</a>
+                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </nav>
+      <div class="righttools">
+        <span class="user-btn">{{ display_name }}</span>
+        <form action="{% url 'logout' %}" method="post" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="logout" aria-label="ออกจากระบบ">
+            ออกจากระบบ
+          </button>
+        </form>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- โหมด -->
       <div class="modebar" role="tablist" aria-label="โหมด">
-  <a class="mode{% if request.resolver_match.url_name == 'user_equipment' %} active{% endif %}"
-     href="{% url 'user_equipment' %}">
-    ยืมอุปกรณ์
-  </a>
-  <a class="mode{% if request.resolver_match.url_name == 'user_equipment_return' %} active{% endif %}"
-     href="{% url 'user_equipment_return' %}">
-    ✓ คืนอุปกรณ์
-  </a>
-  <span class="mode-slider" aria-hidden="true"></span>
-</div>
+        <a
+          class="mode{% if request.resolver_match.url_name == 'user_equipment' %} active{% endif %}"
+          href="{% url 'user_equipment' %}"
+        >
+          ยืมอุปกรณ์
+        </a>
+        <a
+          class="mode{% if request.resolver_match.url_name == 'user_equipment_return' %} active{% endif %}"
+          href="{% url 'user_equipment_return' %}"
+        >
+          ✓ คืนอุปกรณ์
+        </a>
+        <span class="mode-slider" aria-hidden="true"></span>
+      </div>
 
-    <section class="panel">
-      <h2 class="panel-title">รายการรอคืน</h2>
+      <section class="panel">
+        <h2 class="panel-title">รายการรอคืน</h2>
 
-      <!-- ไม่มีช่องกรอก SID/ปุ่มค้นหาแล้ว โหลดอัตโนมัติ -->
-      <p class="hint" id="autoHint">กำลังดึงรายการรอคืนของคุณ…</p>
+        <!-- ไม่มีช่องกรอก SID/ปุ่มค้นหาแล้ว โหลดอัตโนมัติ -->
+        <p class="hint" id="autoHint">กำลังดึงรายการรอคืนของคุณ…</p>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ลำดับ</th>
-            <th>รหัสนิสิต</th>
-            <th>คณะ</th>
-            <th>รายการ</th>
-            <th>จำนวนที่ยืม</th>
-            <th>จำนวนค้างคืน</th>
-            <th>จำนวนที่จะคืน</th>
-            <th>คืน</th>
-          </tr>
-        </thead>
-        <tbody id="retTable"></tbody>
-      </table>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ลำดับ</th>
+              <th>รหัสนิสิต</th>
+              <th>คณะ</th>
+              <th>รายการ</th>
+              <th>จำนวนที่ยืม</th>
+              <th>จำนวนค้างคืน</th>
+              <th>จำนวนที่จะคืน</th>
+              <th>คืน</th>
+            </tr>
+          </thead>
+          <tbody id="retTable"></tbody>
+        </table>
 
-      <p id="retEmpty" class="hint" style="display:none">ไม่มีรายการค้างคืน</p>
-    </section>
-  </main>
+        <p id="retEmpty" class="hint" style="display: none">
+          ไม่มีรายการค้างคืน
+        </p>
+      </section>
+    </main>
 
-  <div class="sheet" id="sheetReturn" aria-hidden="true">
-    <div class="sheet-card">
-      <div class="sheet-title">คืนอุปกรณ์เสร็จสิ้น</div>
-      <div class="sheet-icon">✔</div>
+    <div class="sheet" id="sheetReturn" aria-hidden="true">
+      <div class="sheet-card">
+        <div class="sheet-title">คืนอุปกรณ์เสร็จสิ้น</div>
+        <div class="sheet-icon">✔</div>
+      </div>
     </div>
-  </div>
 
-  <script>
-    window.RETURN_API = "{% url 'equip_return_api' %}";
-    window.PENDING_RETURNS_API = "{% url 'api_user_pending_returns' %}";
-  </script>
-</body>
+    <script>
+      window.RETURN_API = "{% url 'equip_return_api' %}";
+      window.PENDING_RETURNS_API = "{% url 'api_user_pending_returns' %}";
+    </script>
+  </body>
 </html>

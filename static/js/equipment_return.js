@@ -3,9 +3,9 @@
   const $ = (s, el = document) => el.querySelector(s);
 
   // ===== Elements =====
-  const list  = $("#retTable");
+  const list = $("#retTable");
   const empty = $("#retEmpty");
-  const hint  = $("#autoHint");
+  const hint = $("#autoHint");
   const sheet = $("#sheetReturn");
 
   // ===== CSRF =====
@@ -45,23 +45,33 @@
   }
 
   // ---------- ดัชนีลำดับต่อเนื่องต่อ SID ----------
-  function idxKey(sid) { return `ret_idx::${sid}`; }
-  function seqKey(sid) { return `ret_seq::${sid}`; }
+  function idxKey(sid) {
+    return `ret_idx::${sid}`;
+  }
+  function seqKey(sid) {
+    return `ret_seq::${sid}`;
+  }
 
   function loadIndexMap(sid) {
     try {
       return JSON.parse(sessionStorage.getItem(idxKey(sid)) || "{}");
-    } catch { return {}; }
+    } catch {
+      return {};
+    }
   }
   function saveIndexMap(sid, map) {
-    try { sessionStorage.setItem(idxKey(sid), JSON.stringify(map || {})); } catch {}
+    try {
+      sessionStorage.setItem(idxKey(sid), JSON.stringify(map || {}));
+    } catch {}
   }
   function loadSeq(sid) {
     const v = parseInt(sessionStorage.getItem(seqKey(sid) || "0"), 10);
     return Number.isFinite(v) && v > 0 ? v : 0;
   }
   function saveSeq(sid, v) {
-    try { sessionStorage.setItem(seqKey(sid), String(v)); } catch {}
+    try {
+      sessionStorage.setItem(seqKey(sid), String(v));
+    } catch {}
   }
   function ensureIndex(sid, map, name) {
     if (map[name] != null) return map[name];
@@ -72,8 +82,10 @@
   }
   function pruneMapTo(rows, map) {
     // คงเฉพาะที่ยังค้างคืนอยู่
-    const still = new Set(rows.map(r => r.equipment));
-    Object.keys(map).forEach(k => { if (!still.has(k)) delete map[k]; });
+    const still = new Set(rows.map((r) => r.equipment));
+    Object.keys(map).forEach((k) => {
+      if (!still.has(k)) delete map[k];
+    });
   }
   function resetIfEmpty(sid, map) {
     if (Object.keys(map).length === 0) {
@@ -83,7 +95,9 @@
 
   // ---------- Server pending (ดึงอัตโนมัติ) ----------
   async function fetchServerPending() {
-    const resp = await fetch(window.PENDING_RETURNS_API, { credentials: "same-origin" });
+    const resp = await fetch(window.PENDING_RETURNS_API, {
+      credentials: "same-origin",
+    });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok || !data.ok) {
       throw new Error(data.message || "โหลดข้อมูลจากเซิร์ฟเวอร์ไม่สำเร็จ");
@@ -99,7 +113,9 @@
 
     // จัดการดัชนี: ลบรายการที่ไม่อยู่แล้ว และกำหนด index ให้รายการใหม่
     pruneMapTo(rows, map);
-    rows.forEach(r => { ensureIndex(sid, map, r.equipment); });
+    rows.forEach((r) => {
+      ensureIndex(sid, map, r.equipment);
+    });
     saveIndexMap(sid, map);
     resetIfEmpty(sid, map);
 
@@ -141,10 +157,15 @@
               "X-Requested-With": "XMLHttpRequest",
             },
             credentials: "same-origin",
-            body: JSON.stringify({ equipment: r.equipment, qty, student_id: sid }),
+            body: JSON.stringify({
+              equipment: r.equipment,
+              qty,
+              student_id: sid,
+            }),
           });
           const res = await resp.json().catch(() => ({}));
-          if (!resp.ok) throw new Error(res.message || "ไม่สามารถคืนอุปกรณ์ได้");
+          if (!resp.ok)
+            throw new Error(res.message || "ไม่สามารถคืนอุปกรณ์ได้");
 
           openSheet(sheet);
 
@@ -161,7 +182,7 @@
           // อัปเดต client cache ของหน้า “ยืม” ถ้ามี
           const cache = readLastBorrow();
           if (cache && cache.student_id === sid) {
-            const idx = cache.items.findIndex(x => x.name === r.equipment);
+            const idx = cache.items.findIndex((x) => x.name === r.equipment);
             if (idx >= 0) {
               cache.items[idx].qty -= qty;
               if (cache.items[idx].qty <= 0) cache.items.splice(idx, 1);
@@ -204,7 +225,11 @@
     try {
       const server = await fetchServerPending(); // { rows, student_id }
       if (server.rows && server.rows.length) {
-        renderRows(server.student_id || "", server.rows[0]?.faculty || "", server.rows);
+        renderRows(
+          server.student_id || "",
+          server.rows[0]?.faculty || "",
+          server.rows,
+        );
         if (hint) hint.textContent = "";
         return;
       }

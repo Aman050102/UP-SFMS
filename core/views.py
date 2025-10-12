@@ -1,23 +1,30 @@
 from __future__ import annotations
 
-from datetime import date
-from typing import Any, Dict, List
+import os
+import calendar
 import json
+from datetime import date, datetime
+from typing import Any, Dict, List
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import (
+    FileResponse,
+    Http404,
     HttpRequest,
     HttpResponse,
     HttpResponseBadRequest,
     JsonResponse,
 )
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
+from django.templatetags.static import static  # ✅ ใช้ไฟล์ใน /static
 
 from .models import CheckinEvent, BorrowRecord, Equipment
 
@@ -464,7 +471,7 @@ def export_borrow_stats_csv(request: HttpRequest) -> HttpResponse:
     return resp
 
 # =============================================================================
-# หน้าจัดการอุปกรณ์ / บันทึกยืม-คืน (Staff UI)
+# หน้าจัดการอุปกรณ์ / APIs (Staff UI + CRUD)
 # =============================================================================
 @login_required
 def staff_equipment(request: HttpRequest) -> HttpResponse:
@@ -494,23 +501,7 @@ def staff_borrow_ledger(request: HttpRequest) -> HttpResponse:
         },
     )
 
-# เพิ่ม view ให้ตรงกับ urls
-@login_required
-def badminton_booking(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("หน้าจองสนามแบดมินตัน (ผู้ใช้) – กำลังพัฒนา")
-
-@login_required
-def staff_badminton_booking(request: HttpRequest) -> HttpResponse:
-    if not _is_staff(request.user):
-        return HttpResponse("Forbidden", status=403)
-    return HttpResponse("หน้าจองสนามแบดมินตัน (เจ้าหน้าที่) – กำลังพัฒนา")
-
-def health(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("OK")
-
-# =============================================================================
-# Staff Equipment CRUD APIs
-# =============================================================================
+# ==== Staff Equipment CRUD APIs ====
 @login_required
 @require_GET
 def api_staff_equipments(request: HttpRequest) -> JsonResponse:
@@ -541,20 +532,13 @@ def api_staff_equipment_detail(request: HttpRequest, pk: int) -> JsonResponse:
             name=name, defaults={"total": total, "stock": stock}
         )
         if not created:
+            # ถ้ามีอยู่แล้ว อัปเดตแบบระมัดระวัง
             eq.total = max(eq.total, total)
-            eq.stock = max(eq.stock, stock)
+            eq.stock = min(max(eq.stock, stock), eq.total)
             eq.save(update_fields=["total", "stock"])
 
         return JsonResponse(
-            {
-                "ok": True,
-                "row": {
-                    "id": eq.id,
-                    "name": eq.name,
-                    "total": eq.total,
-                    "stock": eq.stock,
-                },
-            }
+            {"ok": True, "row": {"id": eq.id, "name": eq.name, "total": eq.total, "stock": eq.stock}}
         )
 
     eq = get_object_or_404(Equipment, pk=pk)
@@ -585,24 +569,14 @@ def api_staff_equipment_detail(request: HttpRequest, pk: int) -> JsonResponse:
 
         eq.save()
         return JsonResponse(
-            {
-                "ok": True,
-                "row": {
-                    "id": eq.id,
-                    "name": eq.name,
-                    "total": eq.total,
-                    "stock": eq.stock,
-                },
-            }
+            {"ok": True, "row": {"id": eq.id, "name": eq.name, "total": eq.total, "stock": eq.stock}}
         )
 
     # DELETE
     eq.delete()
     return JsonResponse({"ok": True})
 
-# =============================================================================
-# Staff Borrow Ledger API
-# =============================================================================
+# ==== Staff Borrow Ledger API ====
 @login_required
 @require_GET
 def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
@@ -611,9 +585,8 @@ def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
 
     student = (request.GET.get("student") or "").strip()
     qs = BorrowRecord.objects.select_related("equipment").order_by("-occurred_at")
-    if student:
-        if hasattr(BorrowRecord, "student_id"):
-            qs = qs.filter(student_id__icontains=student)
+    if student and hasattr(BorrowRecord, "student_id"):
+        qs = qs.filter(student_id__icontains=student)
 
     rows = []
     for r in qs[:300]:
@@ -678,3 +651,180 @@ def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
 
     rows.sort(key=lambda x: x["equipment"])
     return JsonResponse({"ok": True, "rows": rows, "student_id": sid})
+
+# ====== รายงานรายเดือน (A4) ======
+THAI_MONTHS = [
+    "", "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
+    "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
+]
+
+VENUE_LABELS = {
+    "pool":     "สระว่ายน้ำ",
+    "track":    "ลู่ - ลาน",
+    "outdoor":  "สนามกีฬากลางแจ้ง",
+    "badminton":"สนามแบดมินตัน",
+}
+VENUE_ORDER = ["pool","track","outdoor","badminton"]  # เรียงตามเลย์เอาต์
+
+def _thai_date_label(d: date) -> str:
+    return f"{d.day} {THAI_MONTHS[d.month]} {d.year + 543}"
+
+def _thai_month_label(y: int, m: int) -> str:
+    return f"{THAI_MONTHS[m]} {y + 543}"
+
+# ---------- เส้นทางไฟล์ PDF ----------
+def _monthly_pdf_path(year:int, month:int)->str:
+    fname = "monthly.pdf"  # ชื่อไฟล์ต้นฉบับในโฟลเดอร์ media
+    return os.path.join(settings.MEDIA_ROOT, "reports", f"{year}", f"{month:02d}", fname)
+
+def _fmt_size(num:int)->str:
+    for unit in ["B","KB","MB","GB","TB","PB"]:
+        if num < 1024.0:
+            return f"{num:.1f} {unit}"
+        num /= 1024.0
+    return f"{num:.1f} EB"
+
+def _to_thai_datetime_label(dt):
+    local = timezone.localtime(dt)
+    return f"{local.day} {THAI_MONTHS[local.month]} {local.year+543} {local:%H:%M}"
+
+# ---------- เสิร์ฟไฟล์ PDF ต้นฉบับ ----------
+@login_required
+def monthly_report_source_pdf(request:HttpRequest, year:int, month:int)->FileResponse:
+    fpath = _monthly_pdf_path(year, month)
+    if not os.path.exists(fpath):
+        raise Http404("PDF not found")
+    disp = "attachment" if request.GET.get("dl") == "1" else "inline"
+    resp = FileResponse(open(fpath, "rb"), content_type="application/pdf")
+    resp["Content-Disposition"] = f'{disp}; filename="report_{year}_{month:02d}.pdf"'
+    return resp
+
+# ---------- ข้อมูลเมตาของไฟล์ PDF ----------
+@login_required
+def api_monthly_pdf_info(request:HttpRequest, year:int, month:int)->JsonResponse:
+    fpath = _monthly_pdf_path(year, month)
+    exists = os.path.exists(fpath)
+    size = os.path.getsize(fpath) if exists else 0
+    mtime = timezone.make_aware(datetime.fromtimestamp(os.path.getmtime(fpath))) if exists else None
+    ctime = timezone.make_aware(datetime.fromtimestamp(os.path.getctime(fpath))) if exists else None
+
+    info = {
+        "file_exists": exists,
+        "file_path": fpath,
+        "file_url": request.build_absolute_uri(
+            reverse("monthly_report_source_pdf", kwargs={"year":year,"month":month})
+        ),
+        "file_size_label": _fmt_size(size) if exists else "0 B",
+        "created_at": _to_thai_datetime_label(ctime) if exists else "",
+        "modified_at": _to_thai_datetime_label(mtime) if exists else "",
+        "report_scope":{
+            "month_label": _thai_month_label(year, month),
+            "venues":[VENUE_LABELS[k] for k in VENUE_ORDER],
+        },
+        "sections":[
+            {"title":"รวมทุกสนาม",
+             "widgets":["กราฟวงกลมแสดงสัดส่วนนิสิต/บุคลากร",
+                        "กราฟแท่งเปรียบเทียบแต่ละสนาม",
+                        "กราฟเส้นแสดงจำนวนผู้ใช้รายวัน"]},
+            {"title":"รายสนาม (สระว่ายน้ำ, ลู่-ลาน, กลางแจ้ง, แบดมินตัน)",
+             "widgets":["กราฟวงกลมสถานะผู้ใช้","กราฟเส้นรายวัน"]},
+            {"title":"ตารางรายวัน (รวมทุกสนาม)",
+             "columns":["วันที่","สระว่ายน้ำ นิสิต/บุคลากร",
+                        "ลู่-ลาน นิสิต/บุคลากร",
+                        "กลางแจ้ง นิสิต/บุคลากร",
+                        "แบดมินตัน นิสิต/บุคลากร","รวมต่อวัน"]}
+        ],
+    }
+    return JsonResponse(info)
+
+# ---------- หน้า HTML รายงาน ----------
+@login_required
+def monthly_report_page(request: HttpRequest, year: int, month: int) -> HttpResponse:
+    context = {
+        "org_name_th": "มหาวิทยาลัยพะเยา",
+        "dept_name_th": "กองกิจการนิสิต มหาวิทยาลัยพะเยา 19 หมู่ ที่ 2 ต.แม่กา อ.เมือง จ.พะเยา 56000 โทร 0 5446 6666 ต่อ 6247-6248",
+        "report_title": "ใบรายงานสถิติการเข้าใช้สนาม",
+        "month_label": _thai_month_label(year, month),
+        "issued_date_label": _thai_date_label(timezone.localdate()),
+        # ✅ ใช้ไฟล์โลโก้ที่มีจริงใน static
+        "logo_url": request.build_absolute_uri(static("img/Logo_of_University_of_Phayao.svg.png")),
+        "data_url": request.build_absolute_uri(
+            reverse("api_monthly_report", kwargs={"year": year, "month": month})
+        ),
+        "venues_th": [VENUE_LABELS[k] for k in VENUE_ORDER],
+        "source_pdf_url": request.build_absolute_uri(
+            reverse("monthly_report_source_pdf", kwargs={"year": year, "month": month})
+        ),
+        "source_pdf_info_url": request.build_absolute_uri(
+            reverse("api_monthly_pdf_info", kwargs={"year": year, "month": month})
+        ),
+    }
+    return render(request, "reports/monthly_report.html", context)
+
+# ---------- API JSON รายเดือน ----------
+@login_required
+def api_monthly_report(request: HttpRequest, year: int, month: int) -> JsonResponse:
+    """
+    ส่ง JSON สรุปรายเดือนในรูปทรงเดียวกับที่หน้า HTML คาดหวัง
+    - นับเฉพาะ action='in' (จำนวนผู้เข้าใช้)
+    - แยก role เป็น student/staff จาก user.is_staff
+    - สรุป totals_by_venue + day_rows (1..lastday)
+    """
+    last_day = calendar.monthrange(year, month)[1]
+    tz = timezone.get_current_timezone()
+    # ✅ แทนที่ tz.localize(...) ด้วย make_aware(...)
+    start_dt = timezone.make_aware(datetime(year, month, 1, 0, 0, 0), tz)
+    end_dt   = timezone.make_aware(datetime(year, month, last_day, 23, 59, 59), tz)
+
+    # buffer รายวัน
+    day_rows = [{
+        "day": d,
+        "pool":     {"student": 0, "staff": 0},
+        "track":    {"student": 0, "staff": 0},
+        "outdoor":  {"student": 0, "staff": 0},
+        "badminton":{"student": 0, "staff": 0},
+    } for d in range(1, last_day + 1)]
+
+    qs = (CheckinEvent.objects
+          .select_related("user")
+          .filter(occurred_at__range=(start_dt, end_dt), action="in"))
+
+    for e in qs.iterator():
+        local_dt = timezone.localtime(e.occurred_at, tz)
+        day = local_dt.day
+        fac = e.facility  # outdoor|badminton|pool|track
+        if fac not in VENUE_ORDER:
+            continue
+        role = "staff" if (e.user and e.user.is_staff) else "student"
+        day_rows[day-1][fac][role] += 1
+
+    totals = []
+    for key in VENUE_ORDER:
+        s = sum(row[key]["student"] for row in day_rows)
+        t = sum(row[key]["staff"]   for row in day_rows)
+        totals.append({"venue": VENUE_LABELS[key], "student": s, "staff": t})
+
+    payload = {
+        "meta": {
+            "year": year, "month": month,
+            "month_label": _thai_month_label(year, month),
+            "issued_date": _thai_date_label(timezone.localdate()),
+        },
+        "totals_by_venue": totals,
+        "day_rows": day_rows,
+    }
+    return JsonResponse(payload)
+
+# ====== Misc ======
+@login_required
+def badminton_booking(request: HttpRequest) -> HttpResponse:
+    return HttpResponse("หน้าจองสนามแบดมินตัน (ผู้ใช้) – กำลังพัฒนา")
+
+@login_required
+def staff_badminton_booking(request: HttpRequest) -> HttpResponse:
+    if not _is_staff(request.user):
+        return HttpResponse("Forbidden", status=403)
+    return HttpResponse("หน้าจองสนามแบดมินตัน (เจ้าหน้าที่) – กำลังพัฒนา")
+
+def health(request: HttpRequest) -> HttpResponse:
+    return HttpResponse("OK")
