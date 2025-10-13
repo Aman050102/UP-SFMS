@@ -65,8 +65,20 @@ STATICFILES_DIRS = [BASE_DIR / "static"]  # มีโฟลเดอร์ stati
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ==== LOGIN & MEDIA CONFIG ====
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/staff/'
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'   
+# Static (สำหรับไฟล์ .css, .js, รูป ฯลฯ)
+STATIC_URL = "/static/"
+
+# โฟลเดอร์ที่เราวางไฟล์ static ระดับโปรเจกต์ (เช่น static/js, static/pdf)
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# โฟลเดอร์ “ปลายทาง” ที่ collectstatic จะรวบรวมไฟล์ไปไว้
+STATIC_ROOT = BASE_DIR / "static_collected"
+
+# Media (สำหรับไฟล์อัปโหลดหรือไฟล์ที่เราอ้างถึงด้วย MEDIA_ROOT เช่น PDF รายงาน)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

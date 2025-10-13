@@ -2,46 +2,61 @@
 <!doctype html>
 <html lang="th">
   <head>
-    <!-- รองรับภาษาไทย -->
     <meta charset="utf-8" />
-    <!-- ทำให้หน้าเหมาะกับอุปกรณ์พกพา -->
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <!-- Title -->
     <title>UP-FMS รายงานผู้เข้าใช้สนาม</title>
-    
-    <meta name="color-scheme" content="light dark" />
-    <!-- Favicon -->
-    <link rel="icon" href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}" type="image/png"/>
-    <!-- Styles Sheet -->
+
+    <link
+      rel="icon"
+      href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+      type="image/png"
+    />
     <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/admin_header.css' %}" />
-    <link rel="stylesheet" href="{% static 'assets/css/menu.css' %}" />
-    <link rel="stylesheet" href="{% static 'assets/css/checkin_report.css' %}"/>
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/css/checkin_report.css' %}"
+    />
 
-    <!-- Chart.js สำหรับวาดกรา ฟ -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer ></script>
-
-    <!-- Export: Excel / PDF / DOCX -->
     <script
-      src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"
-      defer
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
-      defer
-    ></script>
-    <!-- ปลั๊กอินตารางของ jsPDF (ต้องโหลด "หลัง" jsPDF) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"
-      defer
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
       defer
     ></script>
 
-    <!-- โค้ดของเรา (ตอนนี้ defer เช่นกัน) -->
-    <script src="{% static 'js/checkin_report.js' %}" defer></script>
+    <!-- สคริปต์เมนูย่อย (สลับหน้า) -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".has-sub > a.toplink").forEach((a) => {
+          a.setAttribute("role", "button");
+          a.setAttribute("aria-expanded", "false");
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const li = a.parentElement;
+            const nowOpen = !li.classList.contains("open");
+            document.querySelectorAll(".has-sub.open").forEach((o) => {
+              if (o !== li) {
+                o.classList.remove("open");
+                o.querySelector("> a.toplink")?.setAttribute(
+                  "aria-expanded",
+                  "false",
+                );
+              }
+            });
+            li.classList.toggle("open", nowOpen);
+            a.setAttribute("aria-expanded", String(nowOpen));
+          });
+        });
+        document.addEventListener("click", (e) => {
+          if (!e.target.closest(".has-sub"))
+            document
+              .querySelectorAll(".has-sub.open")
+              .forEach((o) => o.classList.remove("open"));
+        });
+      });
+    </script>
+
+    <!-- โค้ดหลักของหน้านี้ -->
+    <script defer src="{% static 'js/checkin_report.js' %}"></script>
   </head>
 
   <body>
@@ -61,7 +76,7 @@
           </li>
 
           <li class="has-sub">
-            <a href="#" class="toplink">
+            <a href="#" class="toplink" aria-haspopup="true">
               จัดการข้อมูล
               <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -87,7 +102,7 @@
           </li>
 
           <li class="has-sub">
-            <a href="#" class="toplink">
+            <a href="#" class="toplink" aria-haspopup="true">
               รายงาน
               <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -115,24 +130,9 @@
       </nav>
 
       <div class="righttools">
-        <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M20 21a8 8 0 0 0-16 0" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          {{ display_name }}
-        </span>
-
+        <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน"
+          >{{ display_name }}</span
+        >
         <form action="{% url 'logout' %}" method="post" class="logout-form">
           {% csrf_token %}
           <button
@@ -141,39 +141,24 @@
             title="ออกจากระบบ"
             aria-label="ออกจากระบบ"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="M16 17l5-5-5-5" />
-              <path d="M21 12H9" />
-            </svg>
             ออกจากระบบ
           </button>
         </form>
       </div>
     </header>
 
-    <main>
-      <!-- การ์ดหลักครอบเครื่องมือค้นหา/กรอง + กราฟ -->
+    <!-- data-* ส่ง URL ให้สคริปต์ -->
+    <main
+      data-api-checkins-url="{{ api_checkins_url }}"
+      data-report-page-url="{{ report_page_url }}"
+    >
       <section class="card">
-        <!-- แถบเครื่องมือ (ฟิลเตอร์/ตัวเลือก) -->
         <div class="toolbar">
-          <!-- เลือกช่วงวันที่สำหรับดึงข้อมูล -->
           <label
             >ช่วงวันที่: <input type="date" id="from" /> -
-            <input type="date" id="to" />
-          </label>
+            <input type="date" id="to"
+          /></label>
 
-          <!-- โหมดเวลาสำหรับจัดกลุ่มข้อมูลในกราฟ -->
           <label
             >มุมมองกราฟ:
             <select id="timeMode">
@@ -184,7 +169,6 @@
             </select>
           </label>
 
-          <!-- ค้นหาตามชื่อสนาม -->
           <label
             >สนาม:
             <input
@@ -195,61 +179,100 @@
             />
           </label>
 
-          <!-- ดันชิปไปชิดขวา -->
           <span style="flex: 1"></span>
 
-          <!-- ชิปเลือกหมวดสนาม (เลือกได้อย่างน้อย 1, โค้ด JS จะจัดการคลาส .selected) -->
-          <div class="chips" id="chips">
-            <span class="chip selected" data-k="all"
-              ><small>ทั้งหมด</small></span
+          <div
+            class="chips"
+            id="chips"
+            role="tablist"
+            aria-label="เลือกหมวดสนาม"
+          >
+            <button
+              class="chip selected"
+              type="button"
+              data-k="all"
+              role="tab"
+              aria-selected="true"
             >
-            <span
+              <small>ทั้งหมด</small>
+            </button>
+            <button
               class="chip"
+              type="button"
               data-k="outdoor"
+              role="tab"
+              aria-selected="false"
               style="border-color: var(--outdoor)"
-              ><small>สนามกลางแจ้ง</small></span
             >
-            <span
+              <small>สนามกลางแจ้ง</small>
+            </button>
+            <button
               class="chip"
+              type="button"
               data-k="badminton"
+              role="tab"
+              aria-selected="false"
               style="border-color: var(--badminton)"
-              ><small>สนามแบดมินตัน</small></span
             >
-            <span class="chip" data-k="track" style="border-color: var(--track)"
-              ><small>ลู่และลาน</small></span
+              <small>สนามแบดมินตัน</small>
+            </button>
+            <button
+              class="chip"
+              type="button"
+              data-k="track"
+              role="tab"
+              aria-selected="false"
+              style="border-color: var(--track)"
             >
-            <span class="chip" data-k="pool" style="border-color: var(--pool)"
-              ><small>สระว่ายน้ำ</small></span
+              <small>ลู่และลาน</small>
+            </button>
+            <button
+              class="chip"
+              type="button"
+              data-k="pool"
+              role="tab"
+              aria-selected="false"
+              style="border-color: var(--pool)"
             >
+              <small>สระว่ายน้ำ</small>
+            </button>
           </div>
-        
+        </div>
 
-        <!-- แถวส่วนแสดงกราฟและปุ่ม Export -->
-        <div class="chart-row" id="chartRow">
-          <!-- ปุ่มดาวน์โหลดผลลัพธ์ -->
+        <div class="chart-row" style="margin-top: 14px">
           <div class="chart-actions">
-            <!-- โค้ด JS ควรอ้าง id เหล่านี้เพื่อทำงาน export -->
-            <button id="btnExcel">ดาวน์โหลด Excel</button>
-            <button id="btnPDF">ดาวน์โหลด PDF</button>
-            <button id="btnDoc">ดาวน์โหลด DOCX</button>
-            <button id="btnPrint">พิมพ์เป็น PDF (บราวเซอร์)</button>
-          </div>
+            <!-- ✅ เปิดหน้า Viewer (แสดง PDF เต็มหน้า) -->
+            <a
+              id="btnOpenViewer"
+              class="btn btn-lg btn-primary"
+              href="{{ report_viewer_url }}"
+              target="_blank"
+              rel="noopener"
+            >
+              ⬇︎ เปิด/ดาวน์โหลด PDF
+            </a>
 
-          <!-- พื้นที่กราฟ (Chart.js จะวาดลงใน <canvas>) -->
+            <!-- ถ้าต้องการปุ่มพิมพ์ตรงๆ ก็ให้วิ่งไป viewer พร้อมพารามิเตอร์ print=1 -->
+            <a
+              id="btnPrintViaViewer"
+              class="btn btn-lg btn-outline"
+              href="{{ report_viewer_url }}?print=1"
+              target="_blank"
+              rel="noopener"
+            >
+              🖨 พิมพ์เป็น PDF
+            </a>
+          </div>
           <div class="chart-wrap">
             <canvas id="chart" aria-label="chart"></canvas>
           </div>
         </div>
       </section>
 
-      <!-- กล่องใหญ่โชว์ count รวม (เช่น จำนวนสนามที่ตรงเงื่อนไข) -->
       <section class="bigbox" id="bigbox">
-        สนามทั้งหมด
-        <b id="bigcount">0</b>
-        <!-- แนะนำ: ใส่ aria-live="polite" ที่ <b> ถ้าจะอัปเดตตัวเลขด้วย JS -->
+        สนามทั้งหมด <b id="bigcount">0</b>
       </section>
 
-      <!-- กล่องสถิติย่อย 5 รายการ -->
       <section class="card stats" id="stats">
         <div class="stat">
           <small>รวมรายการ</small>
@@ -273,27 +296,22 @@
         </div>
       </section>
 
-      <!-- ตารางรายการเข้าใช้ (แสดงข้อมูลดิบ) -->
       <section class="card table-card">
-        <!-- แถบหัวตาราง (ข้อความด้านบน) -->
         <div class="table-headband" id="tableHeadText">
-          เวลา&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;วันที่
-          (session)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;สนาม
+          เวลา · วันที่ (session) · สนาม · สนามย่อย · กลุ่มผู้ใช้
         </div>
-
-        <!-- ส่วนตารางจริง (เลื่อนแนวนอนได้) -->
         <div class="table-wrap">
           <table id="table" aria-label="รายการเข้าใช้">
             <thead id="thead">
-              <!-- แนะนำ: เพิ่ม scope="col" เพื่อการเข้าถึงที่ดี -->
               <tr>
                 <th scope="col">เวลา</th>
                 <th scope="col">วันที่ (session)</th>
                 <th scope="col">สนาม</th>
+                <th scope="col">สนามย่อย</th>
+                <th scope="col">กลุ่มผู้ใช้</th>
               </tr>
             </thead>
             <tbody></tbody>
-            <!-- JS จะเติม <tr> จากข้อมูลที่ดึงมา -->
           </table>
         </div>
       </section>

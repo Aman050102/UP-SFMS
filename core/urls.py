@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -22,23 +24,30 @@ urlpatterns = [
     path("user/equipment/return/", views.equipment_return_page, name="user_equipment_return"),
     path("user/borrow-stats/", views.user_borrow_stats, name="user_borrow_stats"),
 
-    # --- APIs (general) ---
-    path("api/check-event/", views.api_check_event, name="api_check_event"),
+    # --- Reports (Checkins page) ---
+    path("reports/checkins/", views.checkin_report, name="checkin_report"),
     path("api/checkins/", views.api_checkins, name="api_checkins"),
-    path("api/borrow-stats/", views.api_borrow_stats, name="api_borrow_stats"),
-    path("api/equipment/borrow/", views.equip_borrow_api, name="equip_borrow_api"),
-    path("api/equipment/return/", views.equip_return_api, name="equip_return_api"),
-    path("api/user/pending-returns/", views.api_user_pending_returns, name="api_user_pending_returns"),
-    path("pool/checkin/", views.pool_checkin, name="pool_checkin_api"),
-    path("pool/checkout/", views.pool_checkout, name="pool_checkout_api"),
+
+    # --- Staff Equipment APIs ---
+    path("api/staff/equipments/", views.api_staff_equipments, name="api_staff_equipments"),
+    path("api/staff/equipment/<int:pk>/", views.api_staff_equipment_detail, name="api_staff_equipment_detail"),
+    path("api/staff/borrow-records/", views.api_staff_borrow_records, name="api_staff_borrow_records"),
+
+    # --- Borrow stats export ---
     path("export/borrow-stats.csv", views.export_borrow_stats_csv, name="export_borrow_stats_csv"),
 
-    # --- Monthly Report (HTML + JSON + PDF + Meta) ---
+    # --- Monthly Report (HTML + JSON + PDF + Meta + Viewer + Builder) ---
     path("reports/monthly/<int:year>/<int:month>/", views.monthly_report_page, name="monthly_report"),
     path("api/reports/monthly/<int:year>/<int:month>.json", views.api_monthly_report, name="api_monthly_report"),
     path("reports/monthly/<int:year>/<int:month>/source.pdf", views.monthly_report_source_pdf, name="monthly_report_source_pdf"),
     path("api/reports/monthly/<int:year>/<int:month>/pdf-info.json", views.api_monthly_pdf_info, name="api_monthly_pdf_info"),
+    path("reports/monthly/<int:year>/<int:month>/viewer/", views.monthly_report_viewer, name="monthly_report_viewer"),
+    path("reports/monthly/<int:year>/<int:month>/build/", views.monthly_report_build_pdf, name="monthly_report_build_pdf"),
 
     # --- Misc ---
     path("health/", views.health, name="health"),
 ]
+
+# เสิร์ฟไฟล์สื่อ (dev เท่านั้น)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
