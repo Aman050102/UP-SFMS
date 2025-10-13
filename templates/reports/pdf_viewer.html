@@ -1,30 +1,60 @@
 {% load static %}
 <!doctype html>
 <html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{{ title }} {{ month_label }}</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ title }} {{ month_label }}</title>
 
-  <link
+    <link
       rel="icon"
       href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
       type="image/png"
     />
     <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/admin_header.css' %}" />
-  <style>
-    body{margin:0;background:#f6f7fb;font-family:"Sarabun",system-ui,sans-serif}
-    .bar{display:flex;gap:12px;align-items:center;padding:12px 16px;background:#5f41c5;color:#fff}
-    .bar .sp{flex:1}
-    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;transition:0.15s}
-    .btn.white{background:#fff;color:#5f41c5}
-    .btn.white:hover{opacity:0.9}
-    .wrap{padding:12px}
-    iframe{width:100%;height:calc(100vh - 64px);border:1px solid #e5e7eb;border-radius:14px;background:#fff}
-  </style>
-</head>
-<body>
+    <style>
+      body {
+        margin: 0;
+        background: #fff;
+        font-family: "Sarabun", system-ui, sans-serif;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: flex-end;
+        padding: 10px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #fff;
+      }
+      .toolbar .title {
+        margin-right: auto;
+        font-weight: 700;
+      }
+      /* ใช้หน้าตาเดียวกับปุ่มออกจากระบบ */
+      .btn-like-logout {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #111827;
+        border-radius: 12px;
+        padding: 8px 14px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .btn-like-logout:hover {
+        background: #f9fafb;
+      }
+      iframe {
+        width: 100%;
+        height: calc(100vh - 60px);
+        border: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
     <header class="topbar">
       <div class="brand">
         <img
@@ -111,35 +141,55 @@
         </form>
       </div>
     </header>
-  <div class="bar">
-    <button class="btn white" onclick="history.back()">← กลับ</button>
-    <div class="sp"><b>{{ title }} {{ month_label }}</b></div>
-    <a class="btn white" href="{{ source_pdf_url }}?dl=1">⬇︎ ดาวน์โหลด</a>
-    <button class="btn white" id="btnPrint">🖨 พิมพ์</button>
-    <button class="btn white" id="btnRegen">🔁 สร้างใหม่</button>
-  </div>
 
-  <div class="wrap">
+    <div class="toolbar">
+      <div class="title">{{ title }} {{ month_label }}</div>
+      <a class="btn-like-logout" href="{{ source_pdf_url }}?dl=1">ดาวน์โหลด</a>
+      <button class="btn-like-logout" id="btnPrint">พิมพ์</button>
+      <button class="btn-like-logout" id="btnRegen">สร้างใหม่</button>
+    </div>
+
+    <!-- แก้สำคัญ: ใช้ source_pdf_url -->
     <iframe id="frame" src="{{ source_pdf_url }}" title="PDF"></iframe>
-  </div>
 
-  <script>
-    const frame = document.getElementById('frame');
-    document.getElementById('btnPrint').addEventListener('click', ()=>{
-      const w = frame.contentWindow; if (!w) return;
-      if (w.document && w.document.readyState === 'complete'){ w.focus(); w.print(); }
-      else { frame.addEventListener('load', ()=>{ frame.contentWindow.focus(); frame.contentWindow.print(); }, {once:true}); }
-    });
-    document.getElementById('btnRegen').addEventListener('click', async (event)=>{
-      const btn = event.currentTarget; btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      try{
-        const r = await fetch("{{ build_url }}");
-        const j = await r.json();
-        if (!j.ok) alert(j.message || "สร้างไฟล์ไม่สำเร็จ");
-        else frame.src = "{{ source_pdf_url }}" + "?t=" + Date.now(); // รีเฟรช
-      }catch(e){ alert("สร้างไฟล์ไม่สำเร็จ"); }
-      finally{ btn.disabled = false; btn.textContent = '🔁 สร้างใหม่'; }
-    });
-  </script>
-</body>
+    <script>
+      const frame = document.getElementById("frame");
+      document.getElementById("btnPrint").addEventListener("click", () => {
+        const w = frame.contentWindow;
+        if (!w) return;
+        if (w.document && w.document.readyState === "complete") {
+          w.focus();
+          w.print();
+        } else {
+          frame.addEventListener(
+            "load",
+            () => {
+              frame.contentWindow.focus();
+              frame.contentWindow.print();
+            },
+            { once: true },
+          );
+        }
+      });
+
+      document
+        .getElementById("btnRegen")
+        .addEventListener("click", async (ev) => {
+          const btn = ev.currentTarget;
+          btn.disabled = true;
+          btn.textContent = "กำลังสร้าง...";
+          try {
+            const r = await fetch("{{ build_url }}");
+            const j = await r.json();
+            if (!j.ok) alert(j.message || "สร้างไฟล์ไม่สำเร็จ");
+            else frame.src = "{{ source_pdf_url }}" + "?t=" + Date.now(); // refresh PDF
+          } catch (e) {
+            alert("สร้างไฟล์ไม่สำเร็จ");
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "สร้างใหม่";
+          }
+        });
+    </script>
+  </body>
 </html>

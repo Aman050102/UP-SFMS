@@ -5,359 +5,703 @@
     <meta charset="utf-8" />
     <title>{{ report_title }} — {{ month_label }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
-      :root{
+      :root {
         --brand: #5f41c5;
         --ink: #111827;
         --muted: #6b7280;
         --line: #e5e7eb;
         --a4w: 210mm;
         --a4h: 297mm;
-        --pad: 16mm;
+        --pad: 0mm;
       }
-      *{box-sizing:border-box}
-      html,body{margin:0;background:#f6f7fb;color:var(--ink);font-family:"Sarabun",system-ui,sans-serif}
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #f6f7fb;
+        color: var(--ink);
+        font-family: "Sarabun", system-ui, sans-serif;
+      }
 
-      /* กล่อง A4 */
-      .doc{width:var(--a4w);margin:8mm auto;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08)}
-      .page{min-height:var(--a4h);padding:var(--pad);position:relative}
-      .page + .page{page-break-before:always}
+      .doc {
+        width: var(--a4w);
+        margin: 8mm auto;
+        background: #fff;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      }
+      .page {
+        min-height: var(--a4h);
+        padding: var(--pad);
+        position: relative;
+      }
+      .page + .page {
+        page-break-before: always;
+      }
 
-      /* ส่วนหัวแบบ iService โทนม่วง */
-      .header{text-align:center;margin:6mm 0;color:#3a237b}
-      .logo{height:34mm;display:block;margin:0 auto 4mm}
-      .h1{font-size:18pt;font-weight:700}
-      .h2{font-size:14pt;font-weight:600;margin-top:2mm}
-      .divider{border:0;border-top:2px solid var(--brand);width:60%;margin:8px auto 0}
+      /* Header */
+      .header {
+        text-align: center;
+        margin: 0 0 6mm;
+        color: #3a237b;
+      }
+      .logo {
+        height: 34mm;
+        display: block;
+        margin: 0 auto 4mm;
+      }
+      .h1 {
+        font-size: 18pt;
+        font-weight: 700;
+      }
+      .h2 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin-top: 2mm;
+      }
+      .divider {
+        border: 0;
+        border-top: 2px solid var(--brand);
+        width: 60%;
+        margin: 8px auto 0;
+      }
 
-      .meta{display:flex;justify-content:space-between;margin:6mm 0 2mm;font-size:11pt}
-      .block{margin-top:8mm}
-      .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10mm;align-items:start}
+      .inner {
+        padding: 0;
+      }
 
-      canvas{width:100%!important;height:68mm!important}
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        margin: 6mm 0 2mm;
+        font-size: 11pt;
+      }
+      .block {
+        margin-top: 8mm;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10mm;
+        align-items: start;
+      }
 
-      .legend{display:flex;gap:10mm;margin-top:4mm;font-size:10pt}
-      .badge{display:inline-flex;align-items:center;gap:6px}
-      .sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+      canvas {
+        width: 100% !important;
+        height: 68mm !important;
+      }
 
-      table{width:100%;border-collapse:collapse;font-size:10pt}
-      th,td{border:1px solid var(--line);padding:6px 8px}
-      thead th{background:#f3f4f6;font-weight:600}
-      tfoot td{background:#f9fafb;font-weight:700}
+      .legend {
+        display: flex;
+        gap: 10mm;
+        margin-top: 4mm;
+        font-size: 10pt;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sw {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        display: inline-block;
+      }
 
-      .footer{position:absolute;left:var(--pad);right:var(--pad);bottom:10mm;display:flex;justify-content:space-between;font-size:9.5pt;color:var(--muted)}
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 6px 8px;
+      }
+      thead th {
+        background: #f3f4f6;
+        font-weight: 600;
+      }
+      tfoot td {
+        background: #f9fafb;
+        font-weight: 700;
+      }
 
-      /* กล่องข้อมูลต้นฉบับ */
-      .panel{border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;margin:16px auto;width:var(--a4w);background:#fff}
-      .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-weight:700;text-decoration:none;cursor:pointer}
-      .btn:hover{opacity:.9}
+      .footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 10mm;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9.5pt;
+        color: var(--muted);
+        padding: 0 0;
+      }
 
-      @page{size:A4;margin:0}
-      @media print{
-        body{background:#fff}
-        .doc{margin:0;box-shadow:none}
-        .panel{display:none}
+      .panel {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 16px auto;
+        width: var(--a4w);
+        background: #fff;
+      }
+      .btn {
+        background: var(--brand);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      /* ขอบกระดาษจริง: บน 20 ขวา 20 ล่าง 20 ซ้าย 30 */
+      @page {
+        size: A4;
+        margin: 20mm 20mm 20mm 30mm;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .doc {
+          margin: 0;
+          box-shadow: none;
+        }
+        .panel {
+          display: none;
+        }
       }
     </style>
+
+    <!-- ใช้ Chart.js 2.9.4 (wkhtmltopdf-friendly) -->
+    <script src="{% static 'vendor/chart.2.9.4.min.js' %}"></script>
   </head>
   <body>
-    <!-- กล่องข้อมูล PDF (ต้นฉบับ) -->
+    <!-- แถบข้อมูลไฟล์ PDF ต้นฉบับ (เฉพาะหน้าเว็บ) -->
     <section class="panel" id="pdfInfoBox">
-      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-        <div id="pdfInfoText" style="font-size:11pt;line-height:1.5">กำลังโหลดข้อมูลไฟล์ PDF...</div>
-        <div style="display:flex;gap:8px">
-          <a class="btn" href="{{ source_pdf_url }}?dl=1">ดาวน์โหลด PDF (ต้นฉบับ)</a>
-          <button class="btn" id="btnPrintOriginal" type="button">พิมพ์ PDF (ต้นฉบับ)</button>
+      <div
+        style="
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        "
+      >
+        <div id="pdfInfoText" style="font-size: 11pt; line-height: 1.5">
+          กำลังโหลดข้อมูลไฟล์ PDF...
+        </div>
+        <div style="display: flex; gap: 8px">
+          <a class="btn" href="{{ source_pdf_url }}?dl=1"
+            >ดาวน์โหลด PDF (ต้นฉบับ)</a
+          >
+          <button class="btn" id="btnPrintOriginal" type="button">
+            พิมพ์ PDF (ต้นฉบับ)
+          </button>
         </div>
       </div>
     </section>
 
-    <div class="doc">
-      <!-- หน้า 1: รวมทุกสนาม -->
-      <section class="page">
+    <!-- หน้า 1: รวมทุกสนาม -->
+    <section class="page">
+      <div class="inner">
         <div class="header">
-          <img src="{{ logo_url }}" class="logo" alt="UP"/>
+          <img src="{{ logo_url }}" class="logo" alt="UP" />
           <div class="h1">มหาวิทยาลัยพะเยา</div>
           <div class="h2">{{ report_title }}</div>
-          <div style="margin-top:3mm">{{ month_label }}</div>
-          <hr class="divider"/>
+          <div style="margin-top: 3mm">{{ month_label }}</div>
+          <hr class="divider" />
         </div>
 
         <div class="meta">
-          <div><b>ชื่อสนาม :</b> รวมทุกสนาม<br/><b>ออกให้ ณ วันที่ :</b> {{ issued_date_label }}</div>
+          <div>
+            <b>ชื่อสนาม :</b> รวมทุกสนาม<br /><b>ออกให้ ณ วันที่ :</b> {{
+            issued_date_label }}
+          </div>
           <div><b>ประจำเดือน :</b> {{ month_label }}</div>
         </div>
 
         <div class="block grid-2">
-          <div>
+          <div class="col">
             <h3>1. แสดงข้อมูล กลุ่มผู้ใช้งานแต่ละสนาม</h3>
-            <canvas id="pieByVenue"></canvas>
+            <canvas
+              id="pieByVenue"
+              class="chart"
+              width="800"
+              height="450"
+            ></canvas>
             <div class="legend">
-              <span class="badge"><span class="sw" style="background:#1f78b4"></span>สระว่ายน้ำ</span>
-              <span class="badge"><span class="sw" style="background:#33a02c"></span>ลู่ - ลาน</span>
-              <span class="badge"><span class="sw" style="background:#6baed6"></span>สนามกีฬากลางแจ้ง</span>
-              <span class="badge"><span class="sw" style="background:#60a5fa"></span>สนามแบดมินตัน</span>
+              <span class="badge"
+                ><span class="sw" style="background: #1f78b4"></span
+                >สระว่ายน้ำ</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #33a02c"></span>ลู่ -
+                ลาน</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #6baed6"></span
+                >สนามกีฬากลางแจ้ง</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #60a5fa"></span
+                >สนามแบดมินตัน</span
+              >
             </div>
           </div>
-          <div>
+          <div class="col">
             <h3>2. สถานะผู้ใช้บริการ</h3>
-            <canvas id="barStudentStaff"></canvas>
+            <canvas
+              id="barStudentStaff"
+              class="chart"
+              width="800"
+              height="450"
+            ></canvas>
             <div class="legend">
-              <span class="badge"><span class="sw" style="background:#1f78b4"></span>บุคลากร</span>
-              <span class="badge"><span class="sw" style="background:#60a5fa"></span>นิสิต</span>
+              <span class="badge"
+                ><span class="sw" style="background: #1f78b4"></span
+                >บุคลากร</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #60a5fa"></span>นิสิต</span
+              >
             </div>
           </div>
         </div>
 
         <div class="block">
           <h3>3. แสดงจำนวนผู้ใช้งานทั้งหมด แบ่งตามสนาม</h3>
-          <canvas id="lineAll"></canvas>
+          <canvas id="lineAll" class="chart" width="1200" height="420"></canvas>
           <div class="legend" id="legendLines"></div>
         </div>
+      </div>
+    </section>
 
-        <div class="footer">
-          <div>{{ dept_name_th }}</div>
-          <div>หน้า 1 /</div>
+    <!-- หน้า 2..N: รายสนาม -->
+    {% for v in venues_th %}
+    <section class="page venue" data-venue="{{ v }}">
+      <div class="header">
+        <img src="{{ logo_url }}" class="logo" alt="UP" />
+        <div class="h1">มหาวิทยาลัยพะเยา</div>
+        <div class="h2">{{ report_title }}</div>
+        <div style="margin-top: 3mm">{{ month_label }}</div>
+        <hr class="divider" />
+      </div>
+
+      <div class="meta">
+        <div>
+          <b>ชื่อสนาม :</b> {{ v }}<br />
+          <b>ออกให้ ณ วันที่ :</b> {{ issued_date_label }}
         </div>
-      </section>
+        <div><b>ประจำเดือน :</b> {{ month_label }}</div>
+      </div>
 
-      <!-- หน้า 2..N: รายสนาม -->
-      {% for v in venues_th %}
-      <section class="page venue" data-venue="{{ v }}">
-        <div class="header">
-          <img src="{{ logo_url }}" class="logo" alt="UP"/>
-          <div class="h1">มหาวิทยาลัยพะเยา</div>
-          <div class="h2">{{ report_title }}</div>
-          <div style="margin-top:3mm">{{ month_label }}</div>
-          <hr class="divider"/>
-        </div>
-
-        <div class="meta">
-          <div><b>ชื่อสนาม :</b> {{ v }}<br/><b>ออกให้ ณ วันที่ :</b> {{ issued_date_label }}</div>
-          <div><b>ประจำเดือน :</b> {{ month_label }}</div>
-        </div>
-
-        <div class="block grid-2">
-          <div>
-            <h3>1. สถานะผู้ใช้บริการ</h3>
-            <canvas class="pie-venue"></canvas>
-            <div class="legend">
-              <span class="badge"><span class="sw" style="background:#60a5fa"></span>นิสิต</span>
-              <span class="badge"><span class="sw" style="background:#1f78b4"></span>บุคลากร</span>
-            </div>
-          </div>
-          <div>
-            <h3>2. แนวโน้มรายวัน</h3>
-            <canvas class="line-venue"></canvas>
+      <div class="block grid-2">
+        <div class="col">
+          <h3>1. สถานะผู้ใช้บริการ</h3>
+          <canvas class="pie-venue chart" width="800" height="450"></canvas>
+          <div class="legend">
+            <span class="badge"
+              ><span class="sw" style="background: #60a5fa"></span>นิสิต</span
+            >
+            <span class="badge"
+              ><span class="sw" style="background: #1f78b4"></span>บุคลากร</span
+            >
           </div>
         </div>
-
-        <div class="footer">
-          <div>{{ dept_name_th }}</div>
-          <div class="page-num"></div>
+        <div class="col">
+          <h3>2. แนวโน้มรายวัน</h3>
+          <canvas class="line-venue chart" width="800" height="450"></canvas>
         </div>
-      </section>
-      {% endfor %}
+      </div>
 
-      <!-- หน้าตารางรายวัน -->
-      <section class="page">
-        <div class="header">
-          <img src="{{ logo_url }}" class="logo" alt="UP"/>
-          <div class="h1">มหาวิทยาลัยพะเยา</div>
-          <div class="h2">{{ report_title }}</div>
-          <div style="margin-top:3mm">{{ month_label }}</div>
-          <hr class="divider"/>
-        </div>
+      <div class="footer">
+        <div>{{ dept_name_th }}</div>
+        <div>หน้า 1 /</div>
+      </div>
+    </section>
+    {% endfor %}
 
-        <div class="meta">
-          <div><b>ชื่อสนาม :</b> รวมทุกสนาม</div>
-          <div><b>ประจำเดือน :</b> {{ month_label }}</div>
-        </div>
+    <!-- หน้าตารางรายวัน -->
+    <section class="page">
+      <div class="header">
+        <img src="{{ logo_url }}" class="logo" alt="UP" />
+        <div class="h1">มหาวิทยาลัยพะเยา</div>
+        <div class="h2">{{ report_title }}</div>
+        <div style="margin-top: 3mm">{{ month_label }}</div>
+        <hr class="divider" />
+      </div>
 
-        <div class="block">
-          <table id="daily">
-            <thead>
-              <tr>
-                <th rowspan="2">วันที่</th>
-                <th colspan="2">สระว่ายน้ำ</th>
-                <th colspan="2">สนามลู่ - ลาน</th>
-                <th colspan="2">สนามกีฬากลางแจ้ง</th>
-                <th colspan="2">สนามแบดมินตัน</th>
-                <th rowspan="2">รวม</th>
-              </tr>
-              <tr>
-                <th>นิสิต</th><th>บุคลากร</th>
-                <th>นิสิต</th><th>บุคลากร</th>
-                <th>นิสิต</th><th>บุคลากร</th>
-                <th>นิสิต</th><th>บุคลากร</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-              <tr>
-                <td>รวม</td>
-                <td id="sum_pool_s"></td><td id="sum_pool_t"></td>
-                <td id="sum_track_s"></td><td id="sum_track_t"></td>
-                <td id="sum_out_s"></td><td id="sum_out_t"></td>
-                <td id="sum_badm_s"></td><td id="sum_badm_t"></td>
-                <td id="sum_all"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+      <div class="meta">
+        <div><b>ชื่อสนาม :</b> รวมทุกสนาม</div>
+        <div><b>ประจำเดือน :</b> {{ month_label }}</div>
+      </div>
 
-        <div class="footer">
-          <div>{{ dept_name_th }}</div>
-          <div class="page-num"></div>
-        </div>
-      </section>
-    </div>
+      <div class="block">
+        <table id="daily">
+          <thead>
+            <tr>
+              <th rowspan="2">วันที่</th>
+              <th colspan="2">สระว่ายน้ำ</th>
+              <th colspan="2">สนามลู่ - ลาน</th>
+              <th colspan="2">สนามกีฬากลางแจ้ง</th>
+              <th colspan="2">สนามแบดมินตัน</th>
+              <th rowspan="2">รวม</th>
+            </tr>
+            <tr>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td>รวม</td>
+              <td id="sum_pool_s"></td>
+              <td id="sum_pool_t"></td>
+              <td id="sum_track_s"></td>
+              <td id="sum_track_t"></td>
+              <td id="sum_out_s"></td>
+              <td id="sum_out_t"></td>
+              <td id="sum_badm_s"></td>
+              <td id="sum_badm_t"></td>
+              <td id="sum_all"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
 
     <script>
-      // กล่องข้อมูลไฟล์ PDF ต้นฉบับ
+      // กล่องข้อมูล PDF ต้นฉบับ
       (function setupPdfInfo() {
-        const pdfUrl = "{{ source_pdf_url|escapejs }}";
-        const infoUrl = "{{ source_pdf_info_url|escapejs }}";
-        const t = document.getElementById("pdfInfoText");
-        const p = document.getElementById("btnPrintOriginal");
-        p?.addEventListener("click", () => {
-          const f = document.createElement("iframe");
-          Object.assign(f.style, {position:"fixed",right:0,bottom:0,width:0,height:0,border:0});
-          f.src = pdfUrl;
-          document.body.appendChild(f);
-          f.onload = () => {
-            try{ f.contentWindow.focus(); f.contentWindow.print(); }
-            catch{ window.open(pdfUrl, "_blank"); }
-          };
-        });
-        (async () => {
-          try {
-            const r = await fetch(infoUrl);
-            const j = await r.json();
-            if (!j.file_exists) { t.textContent = "ยังไม่พบไฟล์ PDF ต้นฉบับสำหรับเดือนนี้"; return; }
-            t.innerHTML = `<b>ไฟล์ PDF ต้นฉบับ</b> · ขนาด ${j.file_size_label} · สร้าง ${j.created_at} · แก้ไข ${j.modified_at}<br>
-              <b>ช่วงข้อมูล:</b> ${j.report_scope.month_label} · <b>สนาม:</b> ${(j.report_scope.venues || []).join(" / ")}<br>
-              <b>ประกอบด้วย:</b> ${(j.sections || []).map((s) => s.title).join(" · ")}`;
-          } catch { t.textContent = "โหลดข้อมูลไฟล์ไม่สำเร็จ"; }
-        })();
+        var pdfUrl = "{{ source_pdf_url|escapejs }}";
+        var infoUrl = "{{ source_pdf_info_url|escapejs }}";
+        var t = document.getElementById("pdfInfoText");
+        var p = document.getElementById("btnPrintOriginal");
+        if (p) {
+          p.addEventListener("click", function () {
+            var f = document.createElement("iframe");
+            f.style.position = "fixed";
+            f.style.right = 0;
+            f.style.bottom = 0;
+            f.style.width = 0;
+            f.style.height = 0;
+            f.style.border = 0;
+            f.src = pdfUrl;
+            document.body.appendChild(f);
+            f.onload = function () {
+              try {
+                f.contentWindow.focus();
+                f.contentWindow.print();
+              } catch (e) {
+                window.open(pdfUrl, "_blank");
+              }
+            };
+          });
+        }
+        fetch(infoUrl)
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (j) {
+            if (!j.file_exists) {
+              t.textContent = "ยังไม่พบไฟล์ PDF ต้นฉบับสำหรับเดือนนี้";
+              return;
+            }
+            t.innerHTML =
+              "<b>ไฟล์ PDF ต้นฉบับ</b> · ขนาด " +
+              j.file_size_label +
+              " · สร้าง " +
+              j.created_at +
+              " · แก้ไข " +
+              j.modified_at +
+              "<br>" +
+              "<b>ช่วงข้อมูล:</b> " +
+              j.report_scope.month_label +
+              " · <b>สนาม:</b> " +
+              (j.report_scope.venues || []).join(" / ") +
+              "<br>" +
+              "<b>ประกอบด้วย:</b> " +
+              (j.sections || [])
+                .map(function (s) {
+                  return s.title;
+                })
+                .join(" · ");
+          })
+          ["catch"](function () {
+            t.textContent = "โหลดข้อมูลไฟล์ไม่สำเร็จ";
+          });
       })();
 
-      // กราฟ + ตาราง
-      const DATA_URL = "{{ data_url|escapejs }}";
-      const COLORS = { pool:"#1f78b4", track:"#33a02c", outdoor:"#6baed6", badminton:"#60a5fa" };
+      // ===== กราฟ + ตาราง =====
+      var DATA_URL = "{{ data_url|escapejs }}";
+      var COLORS = {
+        pool: "#1f78b4",
+        track: "#33a02c",
+        outdoor: "#6baed6",
+        badminton: "#60a5fa",
+      };
 
-      function keyByThai(name){
-        if (name.includes("สระ")) return "pool";
-        if (name.includes("ลู่")) return "track";
-        if (name.includes("กลางแจ้ง")) return "outdoor";
+      function keyByThai(name) {
+        if (name.indexOf("สระ") > -1) return "pool";
+        if (name.indexOf("ลู่") > -1) return "track";
+        if (name.indexOf("กลางแจ้ง") > -1) return "outdoor";
         return "badminton";
       }
-      function addPageNumbers(){
-        document.querySelectorAll(".doc .page").forEach((p, i)=>{
-          const el = p.querySelector(".page-num");
-          if (el) el.textContent = `หน้า ${i+1} / ${document.querySelectorAll(".doc .page").length}`;
-        });
-      }
 
-      (async function(){
-        const res = await fetch(DATA_URL, {headers:{Accept:"application/json"}});
-        const data = await res.json();
+      (function () {
+        fetch(DATA_URL, { headers: { Accept: "application/json" } })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            var totals = data.totals_by_venue || [];
+            var labelsVenue = totals.map(function (x) {
+              return x.venue;
+            });
+            var totalsAll = totals.map(function (x) {
+              return (x.student || 0) + (x.staff || 0);
+            });
 
-        // หน้า 1
-        const totals = data.totals_by_venue;
-        const labelsVenue = totals.map(x => x.venue);
-        const totalsAll = totals.map(x => (x.student||0)+(x.staff||0));
+            new Chart(document.getElementById("pieByVenue"), {
+              type: "pie",
+              data: {
+                labels: labelsVenue,
+                datasets: [
+                  {
+                    data: totalsAll,
+                    backgroundColor: [
+                      COLORS.pool,
+                      COLORS.track,
+                      COLORS.outdoor,
+                      COLORS.badminton,
+                    ],
+                  },
+                ],
+              },
+              options: { legend: { display: false } },
+            });
 
-        new Chart(document.getElementById("pieByVenue"),{
-          type:"pie",
-          data:{ labels:labelsVenue, datasets:[{ data:totalsAll, backgroundColor:[COLORS.pool,COLORS.track,COLORS.outdoor,COLORS.badminton] }] },
-          options:{ plugins:{ legend:{ display:false } } }
-        });
+            new Chart(document.getElementById("barStudentStaff"), {
+              type: "bar",
+              data: {
+                labels: labelsVenue,
+                datasets: [
+                  {
+                    label: "บุคลากร",
+                    data: totals.map(function (x) {
+                      return x.staff;
+                    }),
+                    backgroundColor: COLORS.pool,
+                  },
+                  {
+                    label: "นิสิต",
+                    data: totals.map(function (x) {
+                      return x.student;
+                    }),
+                    backgroundColor: COLORS.badminton,
+                  },
+                ],
+              },
+              options: {
+                scales: { yAxes: [{ ticks: { beginAtZero: true } }] },
+                legend: { display: true },
+              },
+            });
 
-        new Chart(document.getElementById("barStudentStaff"),{
-          type:"bar",
-          data:{
-            labels:labelsVenue,
-            datasets:[
-              { label:"บุคลากร", data:totals.map(x=>x.staff), backgroundColor:COLORS.pool },
-              { label:"นิสิต",   data:totals.map(x=>x.student), backgroundColor:COLORS.badminton },
-            ]
-          },
-          options:{ responsive:true, scales:{ y:{ beginAtZero:true } } }
-        });
+            var days = (data.day_rows || []).map(function (r) {
+              return r.day;
+            });
+            function series(k, color, label) {
+              return {
+                label: label || k,
+                data: (data.day_rows || []).map(function (r) {
+                  return (
+                    ((r[k] && r[k].student) || 0) + ((r[k] && r[k].staff) || 0)
+                  );
+                }),
+                borderColor: color,
+                fill: false,
+                lineTension: 0.25,
+                pointRadius: 0,
+              };
+            }
+            new Chart(document.getElementById("lineAll"), {
+              type: "line",
+              data: {
+                labels: days,
+                datasets: [
+                  series("pool", COLORS.pool, "สระว่ายน้ำ"),
+                  series("track", COLORS.track, "ลู่ - ลาน"),
+                  series("outdoor", COLORS.outdoor, "สนามกีฬากลางแจ้ง"),
+                  series("badminton", COLORS.badminton, "สนามแบดมินตัน"),
+                ],
+              },
+              options: {
+                legend: { display: false },
+                scales: { yAxes: [{ ticks: { beginAtZero: true } }] },
+              },
+            });
+            document.getElementById("legendLines").innerHTML =
+              '<span class="badge"><span class="sw" style="background:' +
+              COLORS.pool +
+              '"></span>สระว่ายน้ำ</span>' +
+              '<span class="badge"><span class="sw" style="background:' +
+              COLORS.track +
+              '"></span>ลู่ - ลาน</span>' +
+              '<span class="badge"><span class="sw" style="background:' +
+              COLORS.outdoor +
+              '"></span>สนามกีฬากลางแจ้ง</span>' +
+              '<span class="badge"><span class="sw" style="background:' +
+              COLORS.badminton +
+              '"></span>สนามแบดมินตัน</span>';
 
-        const days = data.day_rows.map(r=>r.day);
-        function series(k,color){
-          return { label:k, data:data.day_rows.map(r => (r[k]?.student||0)+(r[k]?.staff||0)), borderColor:color, tension:.25 };
-        }
+            // รายสนาม
+            var venueSections = document.querySelectorAll(".venue");
+            for (var i = 0; i < venueSections.length; i++) {
+              var sec = venueSections[i];
+              var th = sec.getAttribute("data-venue") || "";
+              var k = keyByThai(th);
+              var sum = totals.filter(function (x) {
+                return x.venue === th;
+              })[0] || { student: 0, staff: 0 };
 
-        new Chart(document.getElementById("lineAll"),{
-          type:"line",
-          data:{ labels:days, datasets:[ series("pool",COLORS.pool), series("track",COLORS.track), series("outdoor",COLORS.outdoor), series("badminton",COLORS.badminton) ] },
-          options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
-        });
+              new Chart(sec.querySelector(".pie-venue"), {
+                type: "pie",
+                data: {
+                  labels: ["นิสิต", "บุคลากร"],
+                  datasets: [
+                    {
+                      data: [sum.student, sum.staff],
+                      backgroundColor: [COLORS.badminton, COLORS.pool],
+                    },
+                  ],
+                },
+                options: { legend: { display: false } },
+              });
 
-        document.getElementById("legendLines").innerHTML =
-          `<span class="badge"><span class="sw" style="background:${COLORS.pool}"></span>สระว่ายน้ำ</span>
-           <span class="badge"><span class="sw" style="background:${COLORS.track}"></span>ลู่ - ลาน</span>
-           <span class="badge"><span class="sw" style="background:${COLORS.outdoor}"></span>สนามกีฬากลางแจ้ง</span>
-           <span class="badge"><span class="sw" style="background:${COLORS.badminton}"></span>สนามแบดมินตัน</span>`;
+              new Chart(sec.querySelector(".line-venue"), {
+                type: "line",
+                data: {
+                  labels: days,
+                  datasets: [
+                    {
+                      label: th,
+                      data: (data.day_rows || []).map(function (r) {
+                        return (
+                          ((r[k] && r[k].student) || 0) +
+                          ((r[k] && r[k].staff) || 0)
+                        );
+                      }),
+                      borderColor: COLORS[k] || COLORS.pool,
+                      fill: false,
+                      lineTension: 0.25,
+                      pointRadius: 0,
+                    },
+                  ],
+                },
+                options: {
+                  legend: { display: false },
+                  scales: { yAxes: [{ ticks: { beginAtZero: true } }] },
+                },
+              });
+            }
 
-        // รายสนาม
-        document.querySelectorAll(".venue").forEach((sec)=>{
-          const th = sec.dataset.venue;
-          const k = keyByThai(th);
-          const sum = totals.find(x=>x.venue===th) || {student:0, staff:0};
+            // ตารางรายวัน
+            var tbody = document.querySelector("#daily tbody");
+            var sum_pool_s = 0,
+              sum_pool_t = 0,
+              sum_track_s = 0,
+              sum_track_t = 0,
+              sum_out_s = 0,
+              sum_out_t = 0,
+              sum_badm_s = 0,
+              sum_badm_t = 0,
+              sum_all = 0;
+            (data.day_rows || []).forEach(function (r) {
+              var ps = r.pool.student || 0,
+                pt = r.pool.staff || 0,
+                ts = r.track.student || 0,
+                tt = r.track.staff || 0,
+                os = r.outdoor.student || 0,
+                ot = r.outdoor.staff || 0,
+                bs = r.badminton.student || 0,
+                bt = r.badminton.staff || 0;
+              var total = ps + pt + ts + tt + os + ot + bs + bt;
 
-          new Chart(sec.querySelector(".pie-venue"),{
-            type:"pie",
-            data:{ labels:["นิสิต","บุคลากร"], datasets:[{ data:[sum.student,sum.staff], backgroundColor:[COLORS.badminton, COLORS.pool] }] },
-            options:{ plugins:{ legend:{ display:false } } }
+              sum_pool_s += ps;
+              sum_pool_t += pt;
+              sum_track_s += ts;
+              sum_track_t += tt;
+              sum_out_s += os;
+              sum_out_t += ot;
+              sum_badm_s += bs;
+              sum_badm_t += bt;
+              sum_all += total;
+
+              var tr = document.createElement("tr");
+              tr.innerHTML =
+                "<td>" +
+                r.day +
+                "</td><td>" +
+                ps +
+                "</td><td>" +
+                pt +
+                "</td><td>" +
+                ts +
+                "</td><td>" +
+                tt +
+                "</td><td>" +
+                os +
+                "</td><td>" +
+                ot +
+                "</td><td>" +
+                bs +
+                "</td><td>" +
+                bt +
+                "</td><td>" +
+                total +
+                "</td>";
+              tbody.appendChild(tr);
+            });
+            document.getElementById("sum_pool_s").textContent = sum_pool_s;
+            document.getElementById("sum_pool_t").textContent = sum_pool_t;
+            document.getElementById("sum_track_s").textContent = sum_track_s;
+            document.getElementById("sum_track_t").textContent = sum_track_t;
+            document.getElementById("sum_out_s").textContent = sum_out_s;
+            document.getElementById("sum_out_t").textContent = sum_out_t;
+            document.getElementById("sum_badm_s").textContent = sum_badm_s;
+            document.getElementById("sum_badm_t").textContent = sum_badm_t;
+            document.getElementById("sum_all").textContent = sum_all;
           });
-
-          new Chart(sec.querySelector(".line-venue"),{
-            type:"line",
-            data:{ labels:days, datasets:[{ label:th, data:data.day_rows.map(r => (r[k]?.student||0)+(r[k]?.staff||0)), borderColor:COLORS[k]||COLORS.pool, tension:.25 }] },
-            options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
-          });
-        });
-
-        // ตาราง
-        const tbody = document.querySelector("#daily tbody");
-        let sum_pool_s=0,sum_pool_t=0,sum_track_s=0,sum_track_t=0,sum_out_s=0,sum_out_t=0,sum_badm_s=0,sum_badm_t=0,sum_all=0;
-        for(const r of data.day_rows){
-          const ps=r.pool.student||0, pt=r.pool.staff||0,
-                ts=r.track.student||0, tt=r.track.staff||0,
-                os=r.outdoor.student||0, ot=r.outdoor.staff||0,
-                bs=r.badminton.student||0, bt=r.badminton.staff||0;
-          const total = ps+pt+ts+tt+os+ot+bs+bt;
-
-          sum_pool_s+=ps; sum_pool_t+=pt; sum_track_s+=ts; sum_track_t+=tt; sum_out_s+=os; sum_out_t+=ot; sum_badm_s+=bs; sum_badm_t+=bt; sum_all+=total;
-
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.day}</td><td>${ps}</td><td>${pt}</td><td>${ts}</td><td>${tt}</td><td>${os}</td><td>${ot}</td><td>${bs}</td><td>${bt}</td><td>${total}</td>`;
-          tbody.appendChild(tr);
-        }
-        document.getElementById("sum_pool_s").textContent = sum_pool_s;
-        document.getElementById("sum_pool_t").textContent = sum_pool_t;
-        document.getElementById("sum_track_s").textContent = sum_track_s;
-        document.getElementById("sum_track_t").textContent = sum_track_t;
-        document.getElementById("sum_out_s").textContent = sum_out_s;
-        document.getElementById("sum_out_t").textContent = sum_out_t;
-        document.getElementById("sum_badm_s").textContent = sum_badm_s;
-        document.getElementById("sum_badm_t").textContent = sum_badm_t;
-        document.getElementById("sum_all").textContent = sum_all;
-
-        addPageNumbers();
       })();
 
-      // โหมดพิมพ์อัตโนมัติ
-      (function(){
-        const p = new URLSearchParams(location.search);
-        if (p.get("print")==="1"){ setTimeout(()=>window.print(), 400); }
+      // โหมดพิมพ์อัตโนมัติ (สำหรับ wkhtmltopdf)
+      (function () {
+        var p = new URLSearchParams(location.search);
+        if (p.get("print") === "1") {
+          setTimeout(function () {
+            window.print();
+          }, 600);
+        }
       })();
     </script>
   </body>

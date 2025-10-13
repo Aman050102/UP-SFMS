@@ -4,8 +4,13 @@ const $$ = (s, p = document) => Array.from(p.querySelectorAll(s));
 function getCss(v) {
   return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 }
-function ymd(d) {
-  return new Date(d).toISOString().slice(0, 10);
+// ✅ แปลงเป็น yyyy-mm-dd ตามเวลาท้องถิ่น (ไม่ใช้ toISOString เพื่อกันเคสโดน UTC ลบวัน)
+function ymdLocal(d) {
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 function fmtTime(iso) {
   const d = new Date(iso);
@@ -31,9 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_CHECKINS = mainEl.dataset.apiCheckinsUrl;
   const REPORT_PAGE_URL = mainEl.dataset.reportPageUrl;
 
-  const today = ymd(new Date());
-  $("#from").value = today;
-  $("#to").value = today;
+  // ✅ ตั้งค่าเริ่มต้น: วันที่ 1 → วันสุดท้าย ของ "เดือนปัจจุบัน"
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  $("#from").value = ymdLocal(firstDay);
+  $("#to").value = ymdLocal(lastDay);
 
   let facilityFilter = "all";
   let rows = [];
@@ -103,8 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function tallyByRole(list) {
-    let s = 0,
-      t = 0;
+    let s = 0, t = 0;
     list.forEach((r) => (r.role === "staff" ? t++ : s++));
     return { student: s, staff: t };
   }
@@ -257,5 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.open(REPORT_PAGE_URL + "?print=1", "_blank", "noopener");
   });
 
+  // โหลดครั้งแรกด้วยช่วงวันที่ที่ตั้งไว้ (1 → วันสุดท้าย)
   load();
 });

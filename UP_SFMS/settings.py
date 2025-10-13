@@ -1,11 +1,14 @@
-# UP_SFMS/settings.py
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "dev-only-change-me"
 DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
+# token สำหรับ render รายงานแบบ public (ใช้เฉพาะ wkhtmltopdf)
+REPORT_RENDER_TOKEN = os.environ.get("REPORT_RENDER_TOKEN", "dev-secret-change-me")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -14,16 +17,16 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "core",  # แอปที่ย้ายมา
+    "core",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",      # ← ต้องมี
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",   # ← ต้องมี
-    "django.contrib.messages.middleware.MessageMiddleware",      # ← ต้องมี
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -32,7 +35,7 @@ ROOT_URLCONF = "UP_SFMS.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # โฟลเดอร์ templates/ ที่คุณ rsync มา
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -59,26 +62,18 @@ TIME_ZONE = "Asia/Bangkok"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]  # มีโฟลเดอร์ static/ ในโปรเจกต์
+# ====== STATIC & MEDIA ======
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "static_collected"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# ====== LOGIN / LOGOUT redirects ======
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/staff/"
+LOGOUT_REDIRECT_URL = "/login/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ==== LOGIN & MEDIA CONFIG ====
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Static (สำหรับไฟล์ .css, .js, รูป ฯลฯ)
-STATIC_URL = "/static/"
-
-# โฟลเดอร์ที่เราวางไฟล์ static ระดับโปรเจกต์ (เช่น static/js, static/pdf)
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-# โฟลเดอร์ “ปลายทาง” ที่ collectstatic จะรวบรวมไฟล์ไปไว้
-STATIC_ROOT = BASE_DIR / "static_collected"
-
-# Media (สำหรับไฟล์อัปโหลดหรือไฟล์ที่เราอ้างถึงด้วย MEDIA_ROOT เช่น PDF รายงาน)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"

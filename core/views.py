@@ -50,6 +50,7 @@ from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
     JsonResponse,
+    HttpResponseForbidden,
 )
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -152,12 +153,43 @@ def _to_thai_datetime_label(dt):
     return f"{local.day} {THAI_MONTHS[local.month]} {local.year+543} {local:%H:%M}"
 
 def _parse_date(s: str | None) -> date:
+    """
+    แปลงสตริงเป็น date แบบทนทาน:
+    - รองรับค่าว่าง/undefined → คืนวันนี้
+    - รองรับ 'YYYY-MM-DD' หรือ datetime 'YYYY-MM-DDTHH:MM:SS' → ตัดเอา date
+    - ถ้า parse ไม่ได้ → คืนวันนี้
+    """
     if not s:
         return timezone.localdate()
+    s = (s or "").strip()
+    if s.lower() == "undefined" or s.lower() == "null":
+        return timezone.localdate()
     try:
+        # รับทั้ง date และ datetime string
+        if "T" in s:
+            return datetime.fromisoformat(s).date()
         return date.fromisoformat(s)
     except Exception:
         return timezone.localdate()
+
+def _get_post_param(request: HttpRequest, key: str) -> str:
+    val = request.POST.get(key)
+    if val is not None:
+        return val
+    try:
+        body = json.loads(request.body or b"{}")
+        return (body.get(key) or "").strip()
+    except Exception:
+        return ""
+
+def _create_event(request: HttpRequest, facility: str, action: str, sub: str = "") -> CheckinEvent:
+    return CheckinEvent.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        facility=facility,          # outdoor|badminton|pool|track
+        action=action,              # in|out
+        sub_facility=sub or "",
+        occurred_at=timezone.now(),
+    )
 
 # =============================================================================
 # Login / Logout / Consoles
@@ -198,6 +230,39 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     return redirect("login")
 
+# Quick helper views referenced in urls.py
+def test_login(request: HttpRequest) -> HttpResponse:
+    """
+    หน้าช่วยล็อกอินทดสอบแบบรวดเร็ว (ตามที่ core/urls.py อ้างอิง)
+    ใช้งาน: /test-login/?role=staff หรือ /test-login/?role=student
+    """
+    return mock_login(request)
+
+@require_GET
+def monthly_report_page_public(request: HttpRequest, year: int, month: int) -> HttpResponse:
+    """
+    หน้า public สำหรับให้ wkhtmltopdf เข้าถึงได้ โดยตรวจ token ก่อน
+    เรนเดอร์ template เดียวกับ monthly_report_page
+    """
+    token = (request.GET.get("token") or "").strip()
+    expected = getattr(settings, "REPORT_RENDER_TOKEN", "")
+    if not expected or token != expected:
+        return HttpResponseForbidden("invalid token")
+
+    context = {
+        "org_name_th": "มหาวิทยาลัยพะเยา",
+        "dept_name_th": "กองกิจการนิสิต มหาวิทยาลัยพะเยา 19 หมู่ ที่ 2 ต.แม่กา อ.เมือง จ.พะเยา 56000 โทร 0 5446 6666 ต่อ 6247-6248",
+        "report_title": "ใบรายงานสถิติการเข้าใช้สนาม",
+        "month_label": _thai_month_label(year, month),
+        "issued_date_label": _thai_date_label(timezone.localdate()),
+        "logo_url": request.build_absolute_uri(static("img/Logo_of_University_of_Phayao.svg.png")),
+        "data_url": request.build_absolute_uri(reverse("api_monthly_report", kwargs={"year": year, "month": month})),
+        "venues_th": [VENUE_LABELS[k] for k in VENUE_ORDER],
+        "source_pdf_url": request.build_absolute_uri(reverse("monthly_report_source_pdf", kwargs={"year": year, "month": month})),
+        "source_pdf_info_url": request.build_absolute_uri(reverse("api_monthly_pdf_info", kwargs={"year": year, "month": month})),
+    }
+    return render(request, "reports/monthly_report.html", context)
+
 # =============================================================================
 # หน้าเลือกสนาม/เช็คอิน (ผู้ใช้)
 # =============================================================================
@@ -211,25 +276,6 @@ def choose(request: HttpRequest) -> HttpResponse:
             status=403,
         )
     return render(request, "choose.html")
-
-def _create_event(request: HttpRequest, facility: str, action: str, sub: str = "") -> CheckinEvent:
-    return CheckinEvent.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        facility=facility,          # outdoor|badminton|pool|track
-        action=action,              # in|out
-        sub_facility=sub or "",
-        occurred_at=timezone.now(),
-    )
-
-def _get_post_param(request: HttpRequest, key: str) -> str:
-    val = request.POST.get(key)
-    if val is not None:
-        return val
-    try:
-        body = json.loads(request.body or b"{}")
-        return (body.get(key) or "").strip()
-    except Exception:
-        return ""
 
 @require_POST
 @login_required
@@ -486,9 +532,19 @@ def api_borrow_stats(request: HttpRequest) -> JsonResponse:
         qs = qs.filter(action=action)
 
     rows_qs = qs.values("equipment__name").annotate(qty=Sum("qty")).order_by("-qty")
-    rows = [{"equipment": r["equipment__name"] or "ไม่ระบุ", "qty": r["qty"] or 0} for r in rows_qs]
+
+    # ป้องกัน KeyError/None และให้มีค่า default เสมอ
+    rows = [
+        {
+            "equipment": (r.get("equipment__name") or "ไม่ระบุ"),
+            "qty": int(r.get("qty") or 0),
+        }
+        for r in rows_qs
+    ]
     total = sum(r["qty"] for r in rows)
-    return JsonResponse({"from": dfrom.isoformat(), "to": dto.isoformat(), "action": action, "rows": rows, "total": total})
+    return JsonResponse(
+        {"from": dfrom.isoformat(), "to": dto.isoformat(), "action": action, "rows": rows, "total": total}
+    )
 
 @staff_member_required
 def export_borrow_stats_csv(request: HttpRequest) -> HttpResponse:
