@@ -45,7 +45,7 @@ class CheckinEvent(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
     facility = models.CharField(max_length=20, choices=FACILITIES)
-    sub_facility = models.CharField(max_length=64, blank=True, default="")  # ✅ เพิ่มคอลัมน์
+    sub_facility = models.CharField(max_length=64, blank=True, default="")  
     action = models.CharField(max_length=5, choices=ACTIONS)
     occurred_at = models.DateTimeField(default=timezone.now, db_index=True)
 

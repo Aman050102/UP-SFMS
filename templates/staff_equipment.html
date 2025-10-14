@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>จัดการอุปกรณ์กีฬา • UP-FMS</title>
+
     <link
       rel="icon"
       href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
@@ -17,6 +18,7 @@
       href="{% static 'assets/css/staff_equipment.css' %}"
     />
 
+    <!-- ใส่ไว้ท้าย <head> เพื่อให้โหลดเร็วขึ้น -->
     <script defer src="{% static 'js/staff_equipment.js' %}"></script>
   </head>
   <body data-page="staff-equipment">
@@ -138,7 +140,7 @@
     </header>
 
     <main class="wrap">
-      <nav class="mainmenu" aria-label="เมนูหลัก">
+      <nav class="mainmenu" aria-label="เมนูรอง">
         <ul>
           <li>
             <a class="tab active" href="{% url 'staff_equipment' %}"
@@ -152,10 +154,15 @@
           </li>
         </ul>
       </nav>
+
       <h1 class="page-title">เพิ่มรายการอุปกรณ์กีฬา</h1>
 
       <div class="add-row">
-        <input id="equipName" type="text" placeholder="เพิ่มรายการ" />
+        <input
+          id="equipName"
+          type="text"
+          placeholder="เพิ่มรายการ (เช่น ลูกบอล, ไม้แบด, ฯลฯ)"
+        />
         <button id="btnAdd" class="btn success">
           <span class="icon">＋</span> เพิ่ม
         </button>
@@ -176,7 +183,7 @@
     <!-- Toast/Sheet -->
     <div id="sheetOk" class="sheet" aria-hidden="true">
       <div class="sheet-card">
-        <div class="sheet-title">เพิ่มรายการ<br />สำเร็จ</div>
+        <div class="sheet-title">ดำเนินการสำเร็จ</div>
         <div class="sheet-icon">✔</div>
       </div>
     </div>
