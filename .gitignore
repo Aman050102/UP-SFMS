@@ -6,20 +6,20 @@ __pycache__/
 *.pyo
 *.pyd
 
-# SQLite (local dev DB)
+# SQLite local DB
 db.sqlite3
 
-# Django collectstatic & media uploads
+# Django static/media
 static_collected/
 media/
 tmp/
 reports/
 *.pdf
 
-# Local environment & secret keys
+# Local environment
 *.env
 .env.*
-!example.env  # ยกเว้นไฟล์ตัวอย่างไว้ได้
+!example.env
 
 # ========= Node / Frontend (ถ้ามี) =========
 node_modules/
@@ -41,7 +41,7 @@ Thumbs.db
 *.swp
 *.swo
 
-# ========= Misc / Temporary =========
+# ========= Misc =========
 *.zip
 *.tar
 *.gz
