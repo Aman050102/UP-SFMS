@@ -1,4 +1,6 @@
-#  UP - Field Management System (UP-FMS)
+
+#  UP - Sports Facility Management System (UP-SFMS)
+**UP-SFMS : ระบบจัดการสนามกีฬา มหาวิทยาลัยพะเยา**
 
 **โปรเจครายวิชา Fundamental of Database System และ Software Process โดยกลุ่ม *No Name !***  
 สาขาวิศวกรรมซอฟต์แวร์ มหาวิทยาลัยพะเยา ปีการศึกษา 2568**
