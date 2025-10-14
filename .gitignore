@@ -1,25 +1,51 @@
 # ========= Python / Django =========
 .venv/
+env/
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
 
-# SQLite dev DB
+# SQLite (local dev DB)
 db.sqlite3
+
+# Django collectstatic & media uploads
+static_collected/
+media/
+tmp/
+reports/
+*.pdf
+
+# Local environment & secret keys
+*.env
+.env.*
+!example.env  # ยกเว้นไฟล์ตัวอย่างไว้ได้
 
 # ========= Node / Frontend (ถ้ามี) =========
 node_modules/
 dist/
 build/
+npm-debug.log*
 
-# ========= OS / Editor =========
+# ========= macOS / Windows / IDE =========
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.iml
 
-# ========= Logs =========
+# ========= Logs / Caches =========
 *.log
-
-# ========= Misc =========
 *.bak
 *.tmp
+*.swp
+*.swo
+
+# ========= Misc / Temporary =========
+*.zip
+*.tar
+*.gz
+*.egg-info/
+.coverage
+htmlcov/
+__snapshot__/
