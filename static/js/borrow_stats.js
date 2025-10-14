@@ -26,7 +26,20 @@
     return `${d.getFullYear()}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   }
   function monthTH(d) {
-    const THAI_MONTHS = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+    const THAI_MONTHS = [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ];
     return `${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
   }
   // สีกลุ่มพาสเทล
@@ -41,14 +54,20 @@
     beforeDraw(chart, args, opts) {
       const { ctx, chartArea } = chart;
       if (!chartArea) return;
-      const total = chart.config.data.datasets[0]?.data?.reduce((a, b) => a + b, 0) || 0;
+      const total =
+        chart.config.data.datasets[0]?.data?.reduce((a, b) => a + b, 0) || 0;
 
       ctx.save();
-      ctx.font = "600 18px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+      ctx.font =
+        "600 18px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
       ctx.fillStyle = "#3a2b84";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(total.toLocaleString(), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
+      ctx.fillText(
+        total.toLocaleString(),
+        (chartArea.left + chartArea.right) / 2,
+        (chartArea.top + chartArea.bottom) / 2,
+      );
       ctx.restore();
     },
   };
@@ -110,7 +129,11 @@
         plugins: {
           legend: {
             position: "bottom",
-            labels: { color: "#3a2b84", font: { size: 13, weight: "600" }, padding: 12 },
+            labels: {
+              color: "#3a2b84",
+              font: { size: 13, weight: "600" },
+              padding: 12,
+            },
           },
           tooltip: {
             backgroundColor: "#3a2b84",
@@ -119,7 +142,8 @@
             cornerRadius: 8,
             boxPadding: 6,
             callbacks: {
-              label: (ctx) => `${ctx.label}: ${Number(ctx.raw || 0).toLocaleString()} ครั้ง`,
+              label: (ctx) =>
+                `${ctx.label}: ${Number(ctx.raw || 0).toLocaleString()} ครั้ง`,
             },
           },
         },
@@ -160,7 +184,10 @@
     const t = new Date(to.value);
     if (!isNaN(f) && !isNaN(t)) {
       const last = lastDayOfMonth(f);
-      if (t.getMonth() !== f.getMonth() || t.getFullYear() !== f.getFullYear()) {
+      if (
+        t.getMonth() !== f.getMonth() ||
+        t.getFullYear() !== f.getFullYear()
+      ) {
         to.value = toISODate(last);
       }
       load();

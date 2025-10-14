@@ -448,20 +448,30 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
     if qty > eq.stock:
         return JsonResponse({"message": f"สต็อก {eq.name} คงเหลือ {eq.stock} ไม่พอ"}, status=400)
 
+    # อัปเดตสต็อก
     eq.stock -= qty
     eq.save(update_fields=["stock"])
 
-    create_kwargs = dict(equipment=eq, qty=qty, action="borrow", occurred_at=timezone.now())
+    # บันทึก BorrowRecord พร้อม student_id และ faculty (ถ้าโมเดลมี field)
+    create_kwargs = dict(
+        equipment=eq,
+        qty=qty,
+        action="borrow",
+        occurred_at=timezone.now(),
+    )
     if hasattr(BorrowRecord, "student_id"):
         create_kwargs["student_id"] = student_id
+    if hasattr(BorrowRecord, "faculty") and fac:
+        create_kwargs["faculty"] = fac
+
     BorrowRecord.objects.create(**create_kwargs)
 
+    # เก็บ sid / faculty ล่าสุดลง session
     if student_id:
         request.session[SESSION_LAST_SID] = student_id
-        request.session.modified = True
     if fac:
         request.session[SESSION_LAST_FAC] = fac
-        request.session.modified = True
+    request.session.modified = True
 
     return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
 
@@ -483,18 +493,28 @@ def equip_return_api(request: HttpRequest) -> JsonResponse:
 
     eq = get_object_or_404(Equipment, name=name)
 
+    # คืนสต็อก (ไม่เกิน total ถ้ามี)
     max_total = eq.total if isinstance(eq.total, int) else None
-    if max_total is not None:
-        eq.stock = min(max_total, eq.stock + qty)
-    else:
-        eq.stock = eq.stock + qty
+    eq.stock = min(max_total, eq.stock + qty) if max_total is not None else eq.stock + qty
     eq.save(update_fields=["stock"])
 
-    create_kwargs = dict(equipment=eq, qty=qty, action="return", occurred_at=timezone.now())
+    # faculty: ดึงจาก session ล่าสุดถ้ามี field
+    fac_sess = (request.session.get(SESSION_LAST_FAC) or "").strip()
+
+    create_kwargs = dict(
+        equipment=eq,
+        qty=qty,
+        action="return",
+        occurred_at=timezone.now(),
+    )
     if hasattr(BorrowRecord, "student_id"):
         create_kwargs["student_id"] = student_id
+    if hasattr(BorrowRecord, "faculty") and fac_sess:
+        create_kwargs["faculty"] = fac_sess
+
     BorrowRecord.objects.create(**create_kwargs)
 
+    # อัปเดต sid ล่าสุด
     if student_id:
         request.session[SESSION_LAST_SID] = student_id
         request.session.modified = True
@@ -656,12 +676,39 @@ def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
     if student and hasattr(BorrowRecord, "student_id"):
         qs = qs.filter(student_id__icontains=student)
 
+    # -------- สร้าง map faculty ต่อ SID จากข้อมูลที่มี --------
+    fac_by_sid: Dict[str, str] = {}
+    if hasattr(BorrowRecord, "student_id"):
+        for r in qs:
+            sid = getattr(r, "student_id", "") or ""
+            if not sid or sid in fac_by_sid:
+                continue
+            fac_val = getattr(r, "faculty", "") if hasattr(r, "faculty") else ""
+            if fac_val:
+                fac_by_sid[sid] = fac_val
+        # fallback จาก session เฉพาะ “ผู้ใช้ปัจจุบัน” (อาจไม่ครอบคลุมทุก SID)
+        sess_fac = (request.session.get(SESSION_LAST_FAC) or "").strip()
+        sess_sid = (request.session.get(SESSION_LAST_SID) or "").strip()
+        if sess_sid and sess_fac and sess_sid not in fac_by_sid:
+            fac_by_sid[sess_sid] = sess_fac
+
     rows = []
-    for r in qs[:300]:
+    for r in qs[:500]:
         when_str = timezone.localtime(r.occurred_at).strftime("%d/%m/%Y %H:%M")
+        sid = getattr(r, "student_id", "") or "-"
+        # เลือก faculty ตามลำดับความน่าเชื่อถือ
+        fac = "-"
+        if hasattr(r, "faculty") and getattr(r, "faculty", ""):
+            fac = getattr(r, "faculty")
+        elif sid in fac_by_sid:
+            fac = fac_by_sid[sid]
+        elif sid == (request.session.get(SESSION_LAST_SID) or ""):
+            fac = (request.session.get(SESSION_LAST_FAC) or "-")
+
         rows.append(
             {
-                "student_id": getattr(r, "student_id", "") or "-",
+                "student_id": sid,
+                "faculty": fac,
                 "equipment": r.equipment.name if r.equipment else "-",
                 "qty": r.qty,
                 "action": r.action,

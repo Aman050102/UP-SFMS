@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  background: #fff;
+  font-family: "Sarabun", system-ui, sans-serif;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+.toolbar .title {
+  margin-right: auto;
+  font-weight: 700;
+}
+/* ใช้หน้าตาเดียวกับปุ่มออกจากระบบ */
+.btn-like-logout {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.btn-like-logout:hover {
+  background: #f9fafb;
+}
+iframe {
+  width: 100%;
+  height: calc(100vh - 60px);
+  border: 0;
+  display: block;
+}

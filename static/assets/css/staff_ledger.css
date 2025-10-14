@@ -1,0 +1,48 @@
+/* Tabs */
+.mainmenu .tab{display:inline-block;padding:10px 14px;border-radius:12px;background:#ede7ff;font-weight:800;text-decoration:none;color:#1e1a33}
+.mainmenu .tab.active{background:#d9ccff;box-shadow:0 6px 18px rgba(66,38,134,.12)}
+
+/* Layout */
+.wrap{max-width:1120px;margin:26px auto;padding:0 18px}
+.page-title{margin:14px 0 18px;font-size:28px;font-weight:900;color:#1f1b2e}
+
+/* Filter */
+.filter-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:10px 0 16px}
+.fld{display:grid;gap:6px}
+.fld>span{font-weight:800;color:#5a4b8a}
+.fld input[type="text"],.fld input[type="date"]{min-height:44px;padding:10px 12px;border:1px solid #e7e2f2;border-radius:12px;background:#fff;font-weight:700}
+.btn{border:none;border-radius:12px;min-height:44px;padding:10px 16px;cursor:pointer;font-weight:900;background:#efe9ff}
+.btn.primary{background:#b7f4b0}
+.flex1{flex:1}
+
+/* Panel */
+.panel{background:#fff;border-radius:22px;box-shadow:0 14px 34px rgba(39,20,81,.08);padding:14px}
+.result-info{color:#6e6780;font-size:14px;margin-bottom:10px}
+.empty{margin:10px 0 4px;color:#8a839e}
+
+/* Daily cards */
+.day-groups{display:grid;gap:18px}
+.day-card{border:1px solid #ece7fb;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#fbfaff,#ffffff)}
+.day-title{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#d3b5ff;color:#2a1466;font-weight:900;padding:12px 14px}
+.day-title .date{font-size:16px}
+.day-title .count{font-weight:800;opacity:.95}
+
+/* Table */
+.table-wrap{overflow:auto}
+.ledger-table{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
+.ledger-table thead th{position:sticky;top:0;z-index:1;background:#f5efff}
+.ledger-table th,.ledger-table td{border-bottom:1px solid #eee7ff;padding:11px 12px;text-align:left;vertical-align:middle;font-size:14px}
+.ledger-table tbody tr:nth-child(odd){background:#fcfbff}
+.ledger-table tbody tr:hover{background:#f6f3ff}
+.ledger-table .sid .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-weight:900;letter-spacing:.2px}
+.ledger-table .fac{color:#3d336a;font-weight:700}
+.ledger-table .time{white-space:nowrap}
+
+/* time badges */
+.time-badge{display:inline-block;line-height:1;padding:6px 8px;border-radius:10px;border:1px solid #e8e2ff;background:#f5f1ff;margin:2px 4px 2px 0;font-weight:800;font-size:13px}
+.muted{color:#9b95ad}
+
+@media (max-width:760px){
+  .ledger-table th,.ledger-table td{font-size:13px}
+  .ledger-table .time{white-space:normal}
+}

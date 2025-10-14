@@ -13,46 +13,9 @@
     />
     <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/admin_header.css' %}" />
-    <style>
-      body {
-        margin: 0;
-        background: #fff;
-        font-family: "Sarabun", system-ui, sans-serif;
-      }
-      .toolbar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        justify-content: flex-end;
-        padding: 10px 16px;
-        border-bottom: 1px solid #e5e7eb;
-        background: #fff;
-      }
-      .toolbar .title {
-        margin-right: auto;
-        font-weight: 700;
-      }
-      /* ใช้หน้าตาเดียวกับปุ่มออกจากระบบ */
-      .btn-like-logout {
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        color: #111827;
-        border-radius: 12px;
-        padding: 8px 14px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.15s;
-      }
-      .btn-like-logout:hover {
-        background: #f9fafb;
-      }
-      iframe {
-        width: 100%;
-        height: calc(100vh - 60px);
-        border: 0;
-        display: block;
-      }
-    </style>
+    <link rel="stylesheet" href="{% static 'assets/css/pdf_viewer.css' %}" />
+
+    <script defer src="{% static 'js/pdf_viewer.js' %}"></script>
   </head>
   <body>
     <header class="topbar">
@@ -151,45 +114,5 @@
 
     <!-- แก้สำคัญ: ใช้ source_pdf_url -->
     <iframe id="frame" src="{{ source_pdf_url }}" title="PDF"></iframe>
-
-    <script>
-      const frame = document.getElementById("frame");
-      document.getElementById("btnPrint").addEventListener("click", () => {
-        const w = frame.contentWindow;
-        if (!w) return;
-        if (w.document && w.document.readyState === "complete") {
-          w.focus();
-          w.print();
-        } else {
-          frame.addEventListener(
-            "load",
-            () => {
-              frame.contentWindow.focus();
-              frame.contentWindow.print();
-            },
-            { once: true },
-          );
-        }
-      });
-
-      document
-        .getElementById("btnRegen")
-        .addEventListener("click", async (ev) => {
-          const btn = ev.currentTarget;
-          btn.disabled = true;
-          btn.textContent = "กำลังสร้าง...";
-          try {
-            const r = await fetch("{{ build_url }}");
-            const j = await r.json();
-            if (!j.ok) alert(j.message || "สร้างไฟล์ไม่สำเร็จ");
-            else frame.src = "{{ source_pdf_url }}" + "?t=" + Date.now(); // refresh PDF
-          } catch (e) {
-            alert("สร้างไฟล์ไม่สำเร็จ");
-          } finally {
-            btn.disabled = false;
-            btn.textContent = "สร้างใหม่";
-          }
-        });
-    </script>
   </body>
 </html>

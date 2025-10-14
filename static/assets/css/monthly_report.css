@@ -1,0 +1,175 @@
+:root {
+  --brand: #5f41c5;
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --a4w: 210mm;
+  --a4h: 297mm;
+  --pad: 0mm;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: #f6f7fb;
+  color: var(--ink);
+  font-family: "Sarabun", system-ui, sans-serif;
+}
+
+.doc {
+  width: var(--a4w);
+  margin: 8mm auto;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+.page {
+  min-height: var(--a4h);
+  padding: var(--pad);
+  position: relative;
+}
+.page + .page {
+  page-break-before: always;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin: 0 0 6mm;
+  color: #3a237b;
+}
+.logo {
+  height: 34mm;
+  display: block;
+  margin: 0 auto 4mm;
+}
+.h1 {
+  font-size: 18pt;
+  font-weight: 700;
+}
+.h2 {
+  font-size: 14pt;
+  font-weight: 600;
+  margin-top: 2mm;
+}
+.divider {
+  border: 0;
+  border-top: 2px solid var(--brand);
+  width: 60%;
+  margin: 8px auto 0;
+}
+
+.inner {
+  padding: 0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 6mm 0 2mm;
+  font-size: 11pt;
+}
+.block {
+  margin-top: 8mm;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10mm;
+  align-items: start;
+}
+
+canvas {
+  width: 100% !important;
+  height: 68mm !important;
+}
+
+.legend {
+  display: flex;
+  gap: 10mm;
+  margin-top: 4mm;
+  font-size: 10pt;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sw {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10pt;
+}
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 6px 8px;
+}
+thead th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+tfoot td {
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+.footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10mm;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5pt;
+  color: var(--muted);
+  padding: 0 0;
+}
+
+.panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 16px auto;
+  width: var(--a4w);
+  background: #fff;
+}
+.btn {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* ขอบกระดาษจริง: บน 20 ขวา 20 ล่าง 20 ซ้าย 30 */
+@page {
+  size: A4;
+  margin: 20mm 20mm 20mm 30mm;
+}
+@media print {
+  body {
+    background: #fff;
+  }
+  .doc {
+    margin: 0;
+    box-shadow: none;
+  }
+  .panel {
+    display: none;
+  }
+}

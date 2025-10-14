@@ -111,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function tallyByRole(list) {
-    let s = 0, t = 0;
+    let s = 0,
+      t = 0;
     list.forEach((r) => (r.role === "staff" ? t++ : s++));
     return { student: s, staff: t };
   }
