@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Dict, List
 import json
+import re  # ✅ เพิ่มเพื่อใช้เช็กรูปแบบรหัสนิสิต
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model, login, logout
@@ -308,6 +309,13 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
     if qty < 1:
         return JsonResponse({"message": "จำนวนไม่ถูกต้อง"}, status=400)
 
+    # ✅ เช็ครหัสนิสิต: ต้องขึ้นต้นด้วย 6 และมี 8 หลัก
+    if not re.fullmatch(r"6\d{7}", student_id):
+        return JsonResponse(
+            {"message": "รหัสนิสิตต้องขึ้นต้นด้วยเลข 6 และมีทั้งหมด 8 หลักเท่านั้น"},
+            status=400
+        )
+
     eq = get_object_or_404(Equipment, name=name)
     if qty > eq.stock:
         return JsonResponse({"message": f"สต็อก {eq.name} คงเหลือ {eq.stock} ไม่พอ"}, status=400)
@@ -324,7 +332,7 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
         create_kwargs["student_id"] = student_id
     BorrowRecord.objects.create(**create_kwargs)
 
-    # จำค่าไว้ใน session เพื่อให้หน้าคืนดึงอัตโนมัติ
+    # จำค่าไว้ใน session
     if student_id:
         request.session[SESSION_LAST_SID] = student_id
         request.session.modified = True

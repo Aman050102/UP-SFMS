@@ -1,0 +1,25 @@
+# ========= Python / Django =========
+.venv/
+__pycache__/
+*.pyc
+
+# SQLite dev DB
+db.sqlite3
+
+# ========= Node / Frontend (ถ้ามี) =========
+node_modules/
+dist/
+build/
+
+# ========= OS / Editor =========
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ========= Logs =========
+*.log
+
+# ========= Misc =========
+*.bak
+*.tmp

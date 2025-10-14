@@ -19,7 +19,7 @@
     />
 
     <script defer src="{% static 'js/user_header.js' %}"></script>
-    <script defer src="{% static 'js/user_equipment.js' %}"></script>
+    <script defer src="{% static 'js/user_equipment.js' %}?v=2"></script>
   </head>
 
   <body data-page="equipment">
@@ -140,41 +140,85 @@
         </div>
 
         <!-- ฟอร์ม -->
-        <div class="panel form-card">
+        <!-- CHANGED: ครอบด้วย form เพื่อดัก submit และแชร์ validation กับ JS -->
+        <form id="borrowForm" novalidate class="panel form-card">
           <!-- รหัสนิสิต -->
-<label class="field">
-  <span class="field-label">รหัสนิสิต</span>
-  <input id="studentId"
-         type="text"
-         inputmode="numeric"
-         pattern="[0-9]*"
-         placeholder="รหัสนิสิต"
-         class="input" />
-</label>
+          <label class="field">
+            <span class="field-label">รหัสนิสิต</span>
+            <input
+              id="studentId"
+              type="text"
+              inputmode="numeric"
+              maxlength="8"
+              pattern="6\d{7}"
+              title="ต้องขึ้นต้นด้วยเลข 6 และมีทั้งหมด 8 หลัก"
+              placeholder="รหัสนิสิต (8 หลัก เริ่มด้วย 6)"
+              class="input"
+              aria-describedby="studentError"
+              required
+            />
 
-<!-- เลือกคณะ -->
-<label class="field">
-  <span class="field-label">เลือกคณะ</span>
-  <div class="select-wrap">
-    <select id="faculty">
-      {% if faculties %}
-        {% for fac in faculties %}
-          <option value="{{ fac }}">{{ fac }}</option>
-        {% endfor %}
-      {% else %}
-        <!-- fallback เผื่อยังไม่ส่งรายการคณะจาก view -->
-        <option value="">คณะ…</option>
-        <option>คณะการจัดการ</option>
-        <option>คณะวิทยาศาสตร์</option>
-        <option>คณะวิศวกรรมศาสตร์</option>
-        <option>คณะพยาบาลศาสตร์</option>
-      {% endif %}
-    </select>
-    <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/>
-    </svg>
-  </div>
-</label>
+            <small id="studentError" style="color: red; display: none">
+              ต้องขึ้นต้นด้วยเลข 6 และมีทั้งหมด 8 หลัก
+            </small>
+          </label>
+
+          <script>
+            (function () {
+              const studentInput = document.getElementById("studentId");
+              const studentError = document.getElementById("studentError");
+              const RE = /^6\d{7}$/;
+
+              studentInput.addEventListener("input", function (e) {
+                const cursorPos = e.target.selectionStart;
+                const digits = (e.target.value || "").replace(/\D/g, "").slice(0, 8);
+                if (digits !== e.target.value) {
+                  e.target.value = digits;
+                  try { e.target.setSelectionRange(cursorPos, cursorPos); } catch (__) {}
+                }
+                // ซ่อน error ระหว่างพิมพ์ จนกว่าจะครบ 8 หลัก
+                if (digits.length < 8) {
+                  studentError.style.display = "none";
+                } else {
+                  studentError.style.display = RE.test(digits) ? "none" : "block";
+                }
+              });
+
+              studentInput.addEventListener("blur", function (e) {
+                const v = e.target.value || "";
+                studentError.style.display = RE.test(v) ? "none" : "block";
+              });
+            })();
+          </script>
+
+          <!-- เลือกคณะ -->
+          <label class="field">
+            <span class="field-label">เลือกคณะ</span>
+            <div class="select-wrap">
+              <select id="faculty">
+                {% if faculties %} {% for fac in faculties %}
+                <option value="{{ fac }}">{{ fac }}</option>
+                {% endfor %} {% else %}
+                <!-- fallback เผื่อยังไม่ส่งรายการคณะจาก view -->
+                <option value="">คณะ…</option>
+                <option>คณะการจัดการ</option>
+                <option>คณะวิทยาศาสตร์</option>
+                <option>คณะวิศวกรรมศาสตร์</option>
+                <option>คณะพยาบาลศาสตร์</option>
+                {% endif %}
+              </select>
+              <svg class="caret" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M6 9l6 6 6-6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+            </div>
+          </label>
+
+          <!-- อุปกรณ์ -->
           <label class="field">
             <span class="field-label">อุปกรณ์</span>
             <div class="select-wrap">
@@ -196,6 +240,7 @@
             </div>
           </label>
 
+          <!-- จำนวน -->
           <label class="field">
             <span class="field-label">จำนวน</span>
             <div class="qty">
@@ -212,9 +257,10 @@
           </label>
 
           <div class="center">
-            <button id="confirmBtn" class="confirm">ทำการยืม</button>
+            <!-- CHANGED: บังคับ type="button" -->
+            <button id="confirmBtn" type="button" class="confirm">ทำการยืม</button>
           </div>
-        </div>
+        </form>
       </section>
     </main>
 
