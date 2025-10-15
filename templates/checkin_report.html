@@ -159,15 +159,14 @@
             <input type="date" id="to"
           /></label>
 
-          <label
-            >มุมมองกราฟ:
-            <select id="timeMode">
-              <option value="hour">รายชั่วโมง</option>
-              <option value="day">รายวัน</option>
-              <option value="month">รายเดือน</option>
-              <option value="year">รายปี</option>
-            </select>
-          </label>
+          <label>
+    มุมมองเวลา:
+    <select id="timeMode" title="เลือกตัวรวมเวลา">
+      <option value="day">รายวัน</option>
+      <option value="month">รายเดือน</option>
+      <option value="year">รายปี</option>
+    </select>
+  </label>
 
           <label
             >สนาม:
@@ -241,6 +240,41 @@
 
         <div class="chart-row" style="margin-top: 14px">
           <div class="chart-actions">
+            <div
+              id="viewToggle"
+              class="view-toggle"
+              role="tablist"
+              aria-label="สลับมุมมองกราฟ"
+            >
+              <button
+                type="button"
+                class="btn btn-outline active"
+                data-view="pie"
+                role="tab"
+                aria-selected="true"
+              >
+                วงกลม
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline"
+                data-view="bar"
+                role="tab"
+                aria-selected="false"
+              >
+                แท่ง
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline"
+                data-view="line"
+                role="tab"
+                aria-selected="false"
+              >
+                เส้น (30 วัน)
+              </button>
+            </div>
+
             <!--  เปิดหน้า Viewer (แสดง PDF เต็มหน้า) -->
             <a
               id="btnOpenViewer"
