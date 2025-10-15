@@ -44,14 +44,15 @@
       const fac = localStorage.getItem("sfms_fac");
       if (sid && inputSID && !inputSID.value) inputSID.value = sid;
       if (fac && inputFAC && !inputFAC.value) inputFAC.value = fac;
-    } catch (_) { }
+    } catch (_) {}
   })();
 
   // ===== อ่านสต็อกจากตารางด้านขวา =====
   const stock = {};
   $$("#stockList li").forEach((li) => {
     const name = $("span", li)?.textContent.trim() || "";
-    const left = parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
+    const left =
+      parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
     if (name) stock[name] = left;
   });
 
@@ -69,7 +70,9 @@
     const digits = raw.replace(/\D/g, "").slice(0, 3);
     if (digits !== raw) {
       qty.value = digits;
-      try { qty.setSelectionRange(pos, pos); } catch (_) { }
+      try {
+        qty.setSelectionRange(pos, pos);
+      } catch (_) {}
     }
   }
   function clampQtyOnBlur() {
@@ -119,7 +122,7 @@
       else data.items.push({ name: itemName, qty: qtyBorrow });
 
       sessionStorage.setItem("lastBorrow", JSON.stringify(data));
-    } catch (_) { }
+    } catch (_) {}
   }
 
   // ===== Events: จำนวน =====
@@ -150,7 +153,8 @@
   });
   inputSID?.addEventListener("blur", (e) => {
     const v = e.target.value || "";
-    if (studentError) studentError.style.display = /^6\d{7}$/.test(v) ? "none" : "block";
+    if (studentError)
+      studentError.style.display = /^6\d{7}$/.test(v) ? "none" : "block";
   });
 
   // ===== ยืนยันการยืม =====
@@ -180,7 +184,7 @@
       // จำ sid/fac ไว้ในเครื่อง
       localStorage.setItem("sfms_sid", sid);
       localStorage.setItem("sfms_fac", fac);
-    } catch (_) { }
+    } catch (_) {}
 
     if (btnConfirm.disabled) return; // กันดับเบิลคลิก
     btnConfirm.disabled = true;

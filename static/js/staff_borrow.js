@@ -26,7 +26,21 @@
   const hms = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 
   function thaiDateLabel(d) {
-    const thMonths = ["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+    const thMonths = [
+      "",
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+    ];
     return `${d.getDate()} ${thMonths[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
   }
 
@@ -57,7 +71,8 @@
       const fac = r.faculty || "-";
       const itemKey = `${dayKey}|${r.student_id || "-"}|${fac}|${r.equipment || "-"}`;
 
-      if (!days.has(dayKey)) days.set(dayKey, { dateObj: dt, items: new Map() });
+      if (!days.has(dayKey))
+        days.set(dayKey, { dateObj: dt, items: new Map() });
       const day = days.get(dayKey);
 
       if (!day.items.has(itemKey)) {
@@ -111,7 +126,10 @@
     }
     const arr = Array.isArray(val)
       ? val
-      : String(val).split(",").map((s) => s.trim()).filter(Boolean);
+      : String(val)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
     return arr.map((t) => `<span class="time-badge">${t}</span>`).join(" ");
   }
 
@@ -153,7 +171,9 @@
 
       g.rows
         .sort((a, b) =>
-          (a.student_id + a.equipment).localeCompare(b.student_id + b.equipment)
+          (a.student_id + a.equipment).localeCompare(
+            b.student_id + b.equipment,
+          ),
         )
         .forEach((r) => {
           const tr = document.createElement("tr");
