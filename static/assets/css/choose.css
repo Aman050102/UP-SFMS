@@ -331,7 +331,7 @@ input[type="date"] {
 .bottombar{ height:84px; background:var(--brand); }
 
 
-//* === Center the top & outdoor grids === */
+/* === Center the top & outdoor grids === */
 #grid-top,
 #grid-outdoor{
   max-width: 960px;
