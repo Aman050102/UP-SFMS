@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bar?.addEventListener("click", (e) => {
     const link = e.target.closest(".mode");
     if (!link) return;
-    bar.querySelectorAll(".mode").forEach(m => m.classList.remove("active"));
+    bar.querySelectorAll(".mode").forEach((m) => m.classList.remove("active"));
     link.classList.add("active");
     moveSlider(link);
   });

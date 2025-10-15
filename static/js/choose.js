@@ -180,6 +180,7 @@ function init(){
   $id("students")?.addEventListener("input", updateFormUI);
   $id("staff")?.addEventListener("input", updateFormUI);
 
+<<<<<<< HEAD
   // ปุ่มตกลง
   $id("submitBtn")?.addEventListener("click", ()=>{
     if (!validCounts()){
@@ -217,3 +218,14 @@ function init(){
 }
 
 document.addEventListener("DOMContentLoaded", init);
+=======
+  // back
+  const backBtn = $id("btnBack");
+  if (backBtn) {
+    backBtn.onclick = () => {
+      $id("panel-outdoor").classList.add("hidden");
+      $id("panel-top").classList.remove("hidden");
+    };
+  }
+})();
+>>>>>>> 49de407c4cdda68e17062a06461b6dd19814eb5d

@@ -1,0 +1,221 @@
+{% load static %}
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ report_title }} — {{ month_label }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      rel="stylesheet"
+      href="{% static 'assets/css/monthly_report.css' %}"
+    />
+
+    <script defer src="{% static 'js/monthly_report.js' %}"></script>
+
+    <!-- ใช้ Chart.js 2.9.4 (wkhtmltopdf-friendly) -->
+    <script src="{% static 'vendor/chart.2.9.4.min.js' %}"></script>
+  </head>
+  <body>
+    <!-- แถบข้อมูลไฟล์ PDF ต้นฉบับ (เฉพาะหน้าเว็บ) -->
+    <section class="panel" id="pdfInfoBox">
+      <div
+        style="
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        "
+      >
+        <div id="pdfInfoText" style="font-size: 11pt; line-height: 1.5">
+          กำลังโหลดข้อมูลไฟล์ PDF...
+        </div>
+        <div style="display: flex; gap: 8px">
+          <a class="btn" href="{{ source_pdf_url }}?dl=1"
+            >ดาวน์โหลด PDF (ต้นฉบับ)</a
+          >
+          <button class="btn" id="btnPrintOriginal" type="button">
+            พิมพ์ PDF (ต้นฉบับ)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- หน้า 1: รวมทุกสนาม -->
+    <section class="page">
+      <div class="inner">
+        <div class="header">
+          <img src="{{ logo_url }}" class="logo" alt="UP" />
+          <div class="h1">มหาวิทยาลัยพะเยา</div>
+          <div class="h2">{{ report_title }}</div>
+          <div style="margin-top: 3mm">{{ month_label }}</div>
+          <hr class="divider" />
+        </div>
+
+        <div class="meta">
+          <div>
+            <b>ชื่อสนาม :</b> รวมทุกสนาม<br /><b>ออกให้ ณ วันที่ :</b> {{
+            issued_date_label }}
+          </div>
+          <div><b>ประจำเดือน :</b> {{ month_label }}</div>
+        </div>
+
+        <div class="block grid-2">
+          <div class="col">
+            <h3>1. แสดงข้อมูล กลุ่มผู้ใช้งานแต่ละสนาม</h3>
+            <canvas
+              id="pieByVenue"
+              class="chart"
+              width="800"
+              height="450"
+            ></canvas>
+            <div class="legend">
+              <span class="badge"
+                ><span class="sw" style="background: #1f78b4"></span
+                >สระว่ายน้ำ</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #33a02c"></span>ลู่ -
+                ลาน</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #6baed6"></span
+                >สนามกีฬากลางแจ้ง</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #60a5fa"></span
+                >สนามแบดมินตัน</span
+              >
+            </div>
+          </div>
+          <div class="col">
+            <h3>2. สถานะผู้ใช้บริการ</h3>
+            <canvas
+              id="barStudentStaff"
+              class="chart"
+              width="800"
+              height="450"
+            ></canvas>
+            <div class="legend">
+              <span class="badge"
+                ><span class="sw" style="background: #1f78b4"></span
+                >บุคลากร</span
+              >
+              <span class="badge"
+                ><span class="sw" style="background: #60a5fa"></span>นิสิต</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>3. แสดงจำนวนผู้ใช้งานทั้งหมด แบ่งตามสนาม</h3>
+          <canvas id="lineAll" class="chart" width="1200" height="420"></canvas>
+          <div class="legend" id="legendLines"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- หน้า 2..N: รายสนาม -->
+    {% for v in venues_th %}
+    <section class="page venue" data-venue="{{ v }}">
+      <div class="header">
+        <img src="{{ logo_url }}" class="logo" alt="UP" />
+        <div class="h1">มหาวิทยาลัยพะเยา</div>
+        <div class="h2">{{ report_title }}</div>
+        <div style="margin-top: 3mm">{{ month_label }}</div>
+        <hr class="divider" />
+      </div>
+
+      <div class="meta">
+        <div>
+          <b>ชื่อสนาม :</b> {{ v }}<br />
+          <b>ออกให้ ณ วันที่ :</b> {{ issued_date_label }}
+        </div>
+        <div><b>ประจำเดือน :</b> {{ month_label }}</div>
+      </div>
+
+      <div class="block grid-2">
+        <div class="col">
+          <h3>1. สถานะผู้ใช้บริการ</h3>
+          <canvas class="pie-venue chart" width="800" height="450"></canvas>
+          <div class="legend">
+            <span class="badge"
+              ><span class="sw" style="background: #60a5fa"></span>นิสิต</span
+            >
+            <span class="badge"
+              ><span class="sw" style="background: #1f78b4"></span>บุคลากร</span
+            >
+          </div>
+        </div>
+        <div class="col">
+          <h3>2. แนวโน้มรายวัน</h3>
+          <canvas class="line-venue chart" width="800" height="450"></canvas>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>{{ dept_name_th }}</div>
+        <div>หน้า 1 /</div>
+      </div>
+    </section>
+    {% endfor %}
+
+    <!-- หน้าตารางรายวัน -->
+    <section class="page">
+      <div class="header">
+        <img src="{{ logo_url }}" class="logo" alt="UP" />
+        <div class="h1">มหาวิทยาลัยพะเยา</div>
+        <div class="h2">{{ report_title }}</div>
+        <div style="margin-top: 3mm">{{ month_label }}</div>
+        <hr class="divider" />
+      </div>
+
+      <div class="meta">
+        <div><b>ชื่อสนาม :</b> รวมทุกสนาม</div>
+        <div><b>ประจำเดือน :</b> {{ month_label }}</div>
+      </div>
+
+      <div class="block">
+        <table id="daily">
+          <thead>
+            <tr>
+              <th rowspan="2">วันที่</th>
+              <th colspan="2">สระว่ายน้ำ</th>
+              <th colspan="2">สนามลู่ - ลาน</th>
+              <th colspan="2">สนามกีฬากลางแจ้ง</th>
+              <th colspan="2">สนามแบดมินตัน</th>
+              <th rowspan="2">รวม</th>
+            </tr>
+            <tr>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+              <th>นิสิต</th>
+              <th>บุคลากร</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td>รวม</td>
+              <td id="sum_pool_s"></td>
+              <td id="sum_pool_t"></td>
+              <td id="sum_track_s"></td>
+              <td id="sum_track_t"></td>
+              <td id="sum_out_s"></td>
+              <td id="sum_out_t"></td>
+              <td id="sum_badm_s"></td>
+              <td id="sum_badm_t"></td>
+              <td id="sum_all"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </body>
+</html>

@@ -8,11 +8,11 @@
   text-decoration: none;
   color: inherit;
 }
-/* แท็บ active */
 .mainmenu .tab.active {
   background: #d7c3ff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
+
 .wrap {
   max-width: 980px;
   margin: 24px auto;
@@ -27,9 +27,7 @@
   font-size: 26px;
 }
 
-/* =========================================================
-   FORM ROWS (อินพุต + ปุ่มค้นหา/เพิ่ม)
-   ========================================================= */
+/* FORM ROWS */
 .add-row,
 .search-row {
   display: flex;
@@ -57,25 +55,22 @@
 }
 .btn.success {
   background: #b1f4a6;
-} /* ปุ่มยืนยันสีเขียวอ่อน */
+}
 .btn .icon {
   font-weight: 900;
   margin-right: 6px;
 }
 
-/* =========================================================
-   PANELS & TABLE HEADERS
-   ========================================================= */
+/* PANELS */
 .panel {
   background: var(--panel);
   border-radius: 20px;
   box-shadow: var(--shadow);
   padding: 12px;
 }
-/* ส่วนหัว “ตาราง” (แม้ใช้ <ul> ก็จัดคอลัมน์ด้วย grid) */
 .table-head {
   display: grid;
-  grid-template-columns: 1fr 120px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
+  grid-template-columns: 1fr 180px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
   gap: 8px;
   background: #c8a8ff;
   color: #2a1466;
@@ -83,14 +78,8 @@
   padding: 12px 14px;
   font-weight: 900;
 }
-/* โหมด 5 คอลัมน์ (สำหรับหน้า ledger: รหัส | รายการ | จำนวน | วันที่ยืม | วันที่คืน) */
-.panel.table .table-head.grid-5 {
-  grid-template-columns: 140px 1fr 100px 120px 120px;
-}
 
-/* =========================================================
-   LIST ROWS (รายการในตาราง)
-   ========================================================= */
+/* LIST ROWS */
 .list {
   list-style: none;
   margin: 12px 0 0;
@@ -100,7 +89,7 @@
 }
 .list .row {
   display: grid;
-  grid-template-columns: 1fr 120px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
+  grid-template-columns: 1fr 180px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
   gap: 8px;
   align-items: center;
   background: #f7f4ff;
@@ -108,9 +97,28 @@
   border-radius: 12px;
   padding: 12px 14px;
 }
-/* โหมด 5 คอลัมน์ให้ list (หน้า ledger) */
-.list-rows .row {
-  grid-template-columns: 140px 1fr 100px 120px 120px;
+
+.name-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.name {
+  font-weight: 800;
+}
+.name.hide {
+  display: none;
+}
+.name-edit {
+  display: none;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 800;
+}
+.name-edit.show {
+  display: inline-block;
 }
 
 /* ปุ่มไอคอน (บันทึก/ลบ) */
@@ -130,29 +138,79 @@
 }
 .icon-btn.danger {
   background: #ffe2e2;
-} /* ปุ่มลบสีแดงอ่อน */
+}
 
-/* inline edit ของคอลัมน์สต็อก */
+/* ===== ปรับ layout ปุ่มเพิ่ม-ลดรอบช่องจำนวน ===== */
 .inline-edit {
   display: flex;
-  gap: 8px;
-}
-.inline-edit input {
-  width: 90px;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  min-height: 40px;
-  font-weight: 800;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* ระยะห่างระหว่างปุ่มและช่องตัวเลข */
+  background: transparent;
+  border-radius: 12px;
 }
 
-/* =========================================================
-   TOAST / SHEET (popup แจ้งผลลัพธ์สั้น ๆ)
-   ========================================================= */
+.inline-edit .stock {
+  width: 80px; /* ความกว้างของช่องตัวเลข */
+  height: 40px;
+  text-align: center;
+  font-weight: 800;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 16px;
+}
+
+/* ปุ่ม + / − */
+.icon-btn.steper {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f1ff;
+  color: #1e1a33;
+  transition: all 0.15s ease-in-out;
+}
+
+/* เอฟเฟกต์ hover */
+.icon-btn.steper:hover {
+  transform: scale(1.1);
+}
+
+/* สีเฉพาะปุ่มแต่ละแบบ */
+.icon-btn.steper.dec {
+  background: #ffe5e5;
+}
+.icon-btn.steper.inc {
+  background: #dcffe3;
+}
+
+/* ให้ปุ่มและ input อยู่ในแถวเดียวแบบไม่ล้น */
+@media (max-width: 600px) {
+  .inline-edit {
+    gap: 5px;
+  }
+  .inline-edit .stock {
+    width: 65px;
+    font-size: 14px;
+  }
+  .icon-btn.steper {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
+
+/* TOAST / SHEET */
 .sheet {
   position: fixed;
-  inset: 0; /* ครอบทั้งหน้าจอ */
+  inset: 0;
   background: rgba(28, 16, 48, 0.18);
   display: grid;
   place-items: center;
@@ -167,23 +225,23 @@
 .sheet-card {
   background: #d6f7c6;
   border-radius: 28px;
-  padding: 48px 64px;
+  padding: 36px 48px;
   text-align: center;
   box-shadow: var(--shadow);
 }
 .sheet-title {
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 900;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .sheet-icon {
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
   display: grid;
   place-items: center;
   border: 6px solid #2b2640;
   border-radius: 999px;
-  font-size: 40px;
+  font-size: 34px;
   font-weight: 900;
   margin: 0 auto;
 }

@@ -1,0 +1,189 @@
+/* สไตล์แท็บ */
+.mainmenu .tab {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #e8dbff;
+  font-weight: 800;
+  text-decoration: none;
+  color: inherit;
+}
+/* แท็บ active */
+.mainmenu .tab.active {
+  background: #d7c3ff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+.wrap {
+  max-width: 980px;
+  margin: 24px auto;
+  padding: 0 18px;
+}
+.wrap.narrower {
+  max-width: 900px;
+}
+
+.page-title {
+  margin: 12px 0 14px;
+  font-size: 26px;
+}
+
+/* =========================================================
+   FORM ROWS (อินพุต + ปุ่มค้นหา/เพิ่ม)
+   ========================================================= */
+.add-row,
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 6px 0 22px;
+}
+.add-row input,
+.search-row input {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  background: #fff;
+}
+.btn {
+  border: none;
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 900;
+}
+.btn.success {
+  background: #b1f4a6;
+} /* ปุ่มยืนยันสีเขียวอ่อน */
+.btn .icon {
+  font-weight: 900;
+  margin-right: 6px;
+}
+
+/* =========================================================
+   PANELS & TABLE HEADERS
+   ========================================================= */
+.panel {
+  background: var(--panel);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+/* ส่วนหัว “ตาราง” (แม้ใช้ <ul> ก็จัดคอลัมน์ด้วย grid) */
+.table-head {
+  display: grid;
+  grid-template-columns: 1fr 120px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
+  gap: 8px;
+  background: #c8a8ff;
+  color: #2a1466;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 900;
+}
+/* โหมด 5 คอลัมน์ (สำหรับหน้า ledger: รหัส | รายการ | จำนวน | วันที่ยืม | วันที่คืน) */
+.panel.table .table-head.grid-5 {
+  grid-template-columns: 140px 1fr 100px 120px 120px;
+}
+
+/* =========================================================
+   LIST ROWS (รายการในตาราง)
+   ========================================================= */
+.list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.list .row {
+  display: grid;
+  grid-template-columns: 1fr 120px 110px; /* ชื่อ | คงเหลือ | ปุ่ม */
+  gap: 8px;
+  align-items: center;
+  background: #f7f4ff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+/* โหมด 5 คอลัมน์ให้ list (หน้า ledger) */
+.list-rows .row {
+  grid-template-columns: 140px 1fr 100px 120px 120px;
+}
+
+/* ปุ่มไอคอน (บันทึก/ลบ) */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #eee6ff;
+  cursor: pointer;
+  font-size: 16px;
+}
+.icon-btn.danger {
+  background: #ffe2e2;
+} /* ปุ่มลบสีแดงอ่อน */
+
+/* inline edit ของคอลัมน์สต็อก */
+.inline-edit {
+  display: flex;
+  gap: 8px;
+}
+.inline-edit input {
+  width: 90px;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 40px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   TOAST / SHEET (popup แจ้งผลลัพธ์สั้น ๆ)
+   ========================================================= */
+.sheet {
+  position: fixed;
+  inset: 0; /* ครอบทั้งหน้าจอ */
+  background: rgba(28, 16, 48, 0.18);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.18s;
+}
+.sheet[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+.sheet-card {
+  background: #d6f7c6;
+  border-radius: 28px;
+  padding: 48px 64px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.sheet-title {
+  font-size: 42px;
+  font-weight: 900;
+  margin-bottom: 18px;
+}
+.sheet-icon {
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border: 6px solid #2b2640;
+  border-radius: 999px;
+  font-size: 40px;
+  font-weight: 900;
+  margin: 0 auto;
+}

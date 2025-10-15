@@ -11,15 +11,16 @@
       type="image/png"
     />
 
+    <!-- Base -->
     <link rel="stylesheet" href="{% static 'assets/css/global.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/admin_header.css' %}" />
-    <link
-      rel="stylesheet"
-      href="{% static 'assets/css/staff_equipment.css' %}"
-    />
+
+    <!-- ใหม่: แยก CSS ของหน้า ledger ออกจากหน้า “จัดการข้อมูล” -->
+    <link rel="stylesheet" href="{% static 'assets/css/staff_ledger.css' %}" />
 
     <script defer src="{% static 'js/staff_borrow.js' %}"></script>
   </head>
+
   <body data-page="staff-ledger">
     <header class="topbar">
       <div class="brand">
@@ -138,39 +139,48 @@
       </div>
     </header>
 
-    <main class="wrap">
+    <main
+      class="wrap"
+      data-api-records-url="{% url 'api_staff_borrow_records' %}"
+    >
+      <!-- แถบสลับ -->
       <nav class="mainmenu" aria-label="เมนูหลัก">
         <ul>
           <li>
-            <a class="tab active" href="{% url 'staff_equipment' %}"
-              >✓ จัดการอุปกรณ์กีฬา</a
+            <a class="tab" href="{% url 'staff_equipment' %}"
+              >จัดการอุปกรณ์กีฬา</a
             >
           </li>
           <li>
-            <a class="tab" href="{% url 'staff_borrow_ledger' %}"
-              >บันทึกการยืม-คืน</a
+            <a class="tab active" href="{% url 'staff_borrow_ledger' %}"
+              >✓ บันทึกการยืม-คืน</a
             >
           </li>
         </ul>
       </nav>
-      <h1 class="page-title">รหัสนิสิตผู้ยืม</h1>
 
-      <div class="search-row">
-        <input id="studentId" type="text" placeholder="รหัสนิสิต" />
-        <button id="btnSearch" class="btn success">ค้นหา</button>
+      <h1 class="page-title">บันทึกการยืม–คืน (รายวัน)</h1>
+
+      <div class="filter-row">
+        <label class="fld">
+          <span>รหัสนิสิต</span>
+          <input id="studentId" type="text" placeholder="เช่น b6500001" />
+        </label>
+        <label class="fld">
+          <span>วันที่</span>
+          <input id="datePick" type="date" />
+        </label>
+        <button id="btnSearch" class="btn primary">ค้นหา</button>
+        <button id="btnToday" class="btn">วันนี้</button>
+        <span class="flex1"></span>
       </div>
 
-      <section class="panel table">
-        <header class="table-head grid-5">
-          <div>รหัสนิสิต</div>
-          <div>รายการ</div>
-          <div>จำนวน</div>
-          <div>วันที่ยืม</div>
-          <div>วันที่คืน</div>
-        </header>
-        <ul id="borrowList" class="list list-rows">
-          <!-- render ด้วย JS -->
-        </ul>
+      <!-- ผลลัพธ์ -->
+      <section class="panel">
+        <div id="resultInfo" class="result-info">—</div>
+
+        <!-- กลุ่มรายวัน (เรนเดอร์ด้วย JS) -->
+        <div id="dayGroups" class="day-groups" aria-live="polite"></div>
       </section>
     </main>
   </body>
