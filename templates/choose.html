@@ -1,24 +1,42 @@
-{% extends "layouts/basic.html" %}
-{% load static %}
-
-{% block title %}UP-FMS เช็คอิน{% endblock %}
-
-{% block extra_css %}
-<link rel="icon" href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}" type="image/png" />
-<link rel="stylesheet" href="{% static 'assets/css/choose.css' %}?v=20251015-5" />
+{% extends "layouts/basic.html" %} {% load static %} {% block title %}UP-FMS
+เช็คอิน{% endblock %} {% block extra_css %}
+<link
+  rel="icon"
+  href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
+  type="image/png"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'assets/css/choose.css' %}?v=20251015-5"
+/>
 <style>
   /* เสริมเล็กน้อยให้ช่องดูกว้างขึ้น */
-  .input-lg{padding:14px 16px;border:1px solid var(--divider);border-radius:14px;font-size:18px;font-weight:700;width:100%;}
-  .form-center{max-width:560px;margin:16px auto 18px;}
-  .btn-primary{background:#d09aff;border:none;}
+  .input-lg {
+    padding: 14px 16px;
+    border: 1px solid var(--divider);
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    width: 100%;
+  }
+  .form-center {
+    max-width: 560px;
+    margin: 16px auto 18px;
+  }
+  .btn-primary {
+    background: #d09aff;
+    border: none;
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="wrap">
   <header class="topbar">
     <div class="brand">
-      <img src="{% static 'img/logoDSASMART.png' %}" alt="DSA" class="brand-logo" />
+      <img
+        src="{% static 'img/logoDSASMART.png' %}"
+        alt="DSA"
+        class="brand-logo"
+      />
     </div>
   </header>
 
@@ -32,38 +50,58 @@
     <!-- ชั้นที่ 2: ใช้ร่วมทั้งกลางแจ้งและสนามเดี่ยว -->
     <section class="card hidden" id="panel-outdoor">
       <div class="toolbar">
-        <button class="btn" id="btnBack" type="button" aria-label="กลับ">&larr; กลับ</button>
+        <button class="btn" id="btnBack" type="button" aria-label="กลับ">
+          &larr; กลับ
+        </button>
         <span class="hint">เลือกชนิดสนามหรือกรอกจำนวนผู้ใช้</span>
       </div>
 
       <!-- หัวชิป (ใช้โชว์ชื่อสนามในโหมดสนามเดี่ยว) -->
-      <h2 id="facilityTitle" class="chip-title" style="display:none">—</h2>
+      <h2 id="facilityTitle" class="chip-title" style="display: none">—</h2>
 
       <!-- กริดชนิดสนามกลางแจ้ง -->
       <div class="grid" id="grid-outdoor"></div>
 
       <!-- แสดงชื่อชนิดที่เลือก (เฉพาะกลางแจ้ง) -->
-      <p id="selectedWrap" class="hint" style="margin:10px 0 0; display:none;">
+      <p id="selectedWrap" class="hint" style="margin: 10px 0 0; display: none">
         สนามที่เลือก : <strong id="selectedName"></strong>
       </p>
 
       <!-- ข้อความเตือนบนหน้า (แทน alert) -->
-      <p id="formError" class="hint" style="display:none; color:#c0392b; margin:8px 0;"></p>
+      <p
+        id="formError"
+        class="hint"
+        style="display: none; color: #c0392b; margin: 8px 0"
+      ></p>
 
       <!-- ฟอร์มจำนวนคน -->
       <div class="form-card form-center">
         <div class="row">
           <label for="students">จำนวนนิสิต</label>
-          <input id="students" class="input-lg" type="number" min="0" step="1" placeholder="จำนวนคน" />
+          <input
+            id="students"
+            class="input-lg"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="จำนวนคน"
+          />
         </div>
         <div class="row">
           <label for="staff">จำนวนบุคลากร</label>
-          <input id="staff" class="input-lg" type="number" min="0" step="1" placeholder="จำนวนคน" />
+          <input
+            id="staff"
+            class="input-lg"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="จำนวนคน"
+          />
         </div>
       </div>
 
       <!-- ปุ่มตกลง -->
-      <div style="display:flex;justify-content:center;">
+      <div style="display: flex; justify-content: center">
         <button id="submitBtn" class="btn btn-primary" disabled>ตกลง</button>
       </div>
     </section>
@@ -77,8 +115,6 @@
     <div class="ok-icon">✔️</div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{% static 'js/choose.js' %}?v=20251015-5" defer></script>
 {% endblock %}
