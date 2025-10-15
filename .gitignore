@@ -16,6 +16,10 @@ tmp/
 reports/
 *.pdf
 
+# Django collectstatic
+/staticfiles/
+/mediafiles/
+
 # Local environment
 *.env
 .env.*

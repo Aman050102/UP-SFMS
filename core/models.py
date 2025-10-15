@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-
 class Equipment(models.Model):
     name = models.CharField(max_length=255, unique=True)
     total = models.PositiveIntegerField(default=0)
@@ -12,7 +11,6 @@ class Equipment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.stock}/{self.total})"
-
 
 class BorrowRecord(models.Model):
     ACTIONS = (("borrow", "Borrow"), ("return", "Return"))

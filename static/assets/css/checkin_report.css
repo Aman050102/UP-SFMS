@@ -309,3 +309,29 @@ tbody tr:hover {
     box-shadow: 0 8px 18px rgba(109, 77, 211, 0.35);
   }
 }
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.view-toggle .btn {
+  background: #221d2e;
+  color: #e9e6f5;
+  border-color: #3a304b;
+}
+.view-toggle .btn.active {
+  background: linear-gradient(135deg, #5d4b9c, #3a2c74);
+  color: #fff;
+  border-color: transparent;
+}
+@media (prefers-color-scheme: light) {
+  .view-toggle .btn {
+    background: #fff;
+    color: #3a2c74;
+    border-color: #dcd3fb;
+  }
+  .view-toggle .btn.active {
+    background: linear-gradient(135deg, #7b5bb0, #5d4b9c);
+    color: #fff;
+  }
+}
