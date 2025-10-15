@@ -282,6 +282,16 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     action   = (_get_post_param(request, "action") or "").strip()
     sub      = (_get_post_param(request, "sub") or "").strip()
 
+    # จำนวนที่ผู้ใช้กรอก (ถ้าไม่ใช่ตัวเลข จะเป็น 0)
+    try:
+        students_in = int(_get_post_param(request, "students") or 0)
+    except Exception:
+        students_in = 0
+    try:
+        staff_in = int(_get_post_param(request, "staff") or 0)
+    except Exception:
+        staff_in = 0
+
     if facility not in {"outdoor", "badminton", "pool", "track"}:
         return HttpResponseBadRequest("invalid facility")
     if action not in {"in", "out"}:
@@ -295,21 +305,36 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
                 return JsonResponse({"ok": False, "error": "not_checked_in", "locked": False})
             _unlock_pool(request)
 
+    # สร้าง event
     evt = _create_event(request, facility, action, sub=sub)
+
+    # ถ้ามีฟิลด์ students/staff ในโมเดล ให้บันทึก
+    changed = False
+    if hasattr(evt, "students"):
+        evt.students = max(0, int(students_in))
+        changed = True
+    if hasattr(evt, "staff"):
+        evt.staff = max(0, int(staff_in))
+        changed = True
+    if changed:
+        evt.save(update_fields=[f for f in ["students","staff"] if hasattr(evt, f)])
+
     local_dt = timezone.localtime(evt.occurred_at)
-    session_date = local_dt.date().isoformat()
     role = "staff" if (evt.user and evt.user.is_staff) else "student"
 
+    # ส่งค่ากลับ รวมทั้งจำนวนที่บันทึก (หรือ 0 ถ้าไม่มีฟิลด์)
     return JsonResponse(
         {
             "ok": True,
             "id": evt.id,
             "facility": evt.facility,
-            "sub_facility": evt.sub_facility,
+            "sub_facility": evt.sub_facility or "",
             "action": evt.action,
             "role": role,
             "ts": local_dt.isoformat(),
-            "session_date": session_date,
+            "session_date": local_dt.date().isoformat(),
+            "student_count": int(getattr(evt, "students", 0) or 0),
+            "staff_count": int(getattr(evt, "staff", 0) or 0),
         }
     )
 
@@ -392,6 +417,9 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
     for evt in qs:
         local_dt = timezone.localtime(evt.occurred_at)
         role = "staff" if (evt.user and evt.user.is_staff) else "student"
+        # ถ้าโมเดลไม่มีฟิลด์ จะเป็น 0
+        s_cnt = int(getattr(evt, "students", 0) or 0)
+        t_cnt = int(getattr(evt, "staff", 0) or 0)
         rows.append(
             {
                 "ts": local_dt.isoformat(),
@@ -400,10 +428,11 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
                 "sub_facility": evt.sub_facility or "",
                 "action": evt.action,
                 "role": role,
+                "student_count": s_cnt,
+                "staff_count": t_cnt,
             }
         )
     return JsonResponse(rows, safe=False)
-
 # =============================================================================
 # ยืม–คืนอุปกรณ์ (หน้า + API + สถิติ)
 # =============================================================================

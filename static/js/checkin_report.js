@@ -33,7 +33,6 @@ const COLORS = {
 
 // โทนมืออาชีพ (เข้ม): พาเล็ตสำหรับ datasets
 const PALETTE = {
-  // โทนทอง-ม่วง-เทาเข้ม
   gold: "#C8A44D",
   gold50: "rgba(200,164,77,.45)",
   purple: "#5D4B9C",
@@ -46,7 +45,6 @@ const PALETTE = {
 
 // เส้นตาราง/ตัวอักษรให้เข้ากับธีม
 function chartTextColor() {
-  // พยายามอ่านจาก CSS ถ้าไม่มีก็ fallback เทาสว่าง
   return getCss("--text") || "#e9e6f5";
 }
 function chartGridColor() {
@@ -57,7 +55,6 @@ function chartGridColor() {
 document.addEventListener("DOMContentLoaded", () => {
   const mainEl = document.querySelector("main");
   const API_CHECKINS = mainEl.dataset.apiCheckinsUrl;
-  const REPORT_PAGE_URL = mainEl.dataset.reportPageUrl;
 
   // เริ่มต้นช่วงวันที่ = 1 -> วันสุดท้ายของเดือนปัจจุบัน
   const now = new Date();
@@ -69,32 +66,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // สถานะ UI
   let facilityFilter = "all"; // all | outdoor | badminton | pool | track
   let viewMode = "pie"; // pie | bar | line
-  let rows = []; // ข้อมูลจาก API
+  let rows = []; // ข้อมูลจาก API (normalize แล้ว)
   let chartInstance;
 
-  // ------------ fetch + ตารางสรุป ------------
+  // ------------ fetch + normalize + ตารางสรุป ------------
   async function fetchRows() {
     const qs = new URLSearchParams({
       from: $("#from").value,
       to: $("#to").value,
       facility: facilityFilter === "all" ? "" : facilityFilter,
     }).toString();
+
     const res = await fetch(API_CHECKINS + "?" + qs, {
       credentials: "same-origin",
     });
     if (!res.ok) return [];
+
     const data = await res.json();
-    return data.map((r) => ({
-      ...r,
-      role: r.role || "student",
-      sub_facility: r.sub_facility || "",
-    }));
+
+    // normalize ให้ทุกแถวมี student_count / staff_count (ถ้า API ยังไม่ส่งมา)
+    // ถ้า API ส่ง user_count มา จะไม่ใช้ (เราแยกนิสิต/บุคลากรเอง)
+    return data.map((r) => {
+      const sc = Number(r.student_count ?? (r.role === "student" ? 1 : 0) ?? 0);
+      const tc = Number(r.staff_count ?? (r.role === "staff" ? 1 : 0) ?? 0);
+      return {
+        ts: r.ts,
+        session_date: r.session_date,
+        facility: r.facility,
+        sub_facility: r.sub_facility || "",
+        action: r.action || "in",
+        student_count: isNaN(sc) ? 0 : sc,
+        staff_count: isNaN(tc) ? 0 : tc,
+      };
+    });
   }
 
   function countByFacility(list) {
     const c = { outdoor: 0, badminton: 0, pool: 0, track: 0 };
     list.forEach((r) => {
-      if (c[r.facility] !== undefined) c[r.facility]++;
+      const total = Number(r.student_count || 0) + Number(r.staff_count || 0);
+      if (c[r.facility] !== undefined) c[r.facility] += total;
     });
     return { ...c, total: c.outdoor + c.badminton + c.pool + c.track };
   }
@@ -103,48 +114,66 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#thead").innerHTML = `
       <tr>
         <th scope="col">เวลา</th>
-        <th scope="col">วันที่ (session)</th>
+        <th scope="col">วันที่</th>
         <th scope="col">สนาม</th>
         <th scope="col">สนามย่อย</th>
-        <th scope="col">กลุ่มผู้ใช้</th>
+        <th scope="col">กลุ่มเป้าหมาย</th>
+        <th scope="col" style="text-align:center;">จำนวนผู้ใช้งาน</th>
       </tr>`;
     $("#tableHeadText").textContent =
-      "เวลา · วันที่ (session) · สนาม · สนามย่อย · กลุ่มผู้ใช้";
+      "เวลา · วันที่ · สนาม · สนามย่อย · กลุ่มเป้าหมาย · จำนวนผู้ใช้งาน";
   }
 
   function renderCountsAndTable() {
     updateTableHeader();
     const tb = $("#table tbody");
     tb.innerHTML = "";
+
     rows.forEach((r) => {
+      const sc = Number(r.student_count || 0);
+      const tc = Number(r.staff_count || 0);
+      const totalCount = sc + tc;
+
+      // กลุ่มเป้าหมาย (แสดงตามข้อมูลจริงของแถว)
+      let targetText = "-";
+      if (sc > 0 && tc > 0) targetText = "นิสิต/บุคลากร";
+      else if (sc > 0) targetText = "นิสิต";
+      else if (tc > 0) targetText = "บุคลากร";
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${fmtTime(r.ts)}</td>
         <td>${r.session_date}</td>
         <td>${FAC_NAME[r.facility] || r.facility}</td>
         <td>${r.sub_facility || "-"}</td>
-        <td>${r.role === "staff" ? "บุคลากร" : "นิสิต"}</td>`;
+        <td>${targetText}</td>
+        <td style="text-align:center;">${totalCount.toLocaleString()}</td>`;
       tb.appendChild(tr);
     });
 
-    const c = countByFacility(rows);
-    $("#bigcount").textContent = c.total;
-    $("#st-total").textContent = c.total;
-    $("#st-outdoor").textContent = c.outdoor;
-    $("#st-badminton").textContent = c.badminton;
-    $("#st-pool").textContent = c.pool;
-    $("#st-track").textContent = c.track;
+    // รวมจำนวนผู้ใช้งานทั้งหมดตามสนาม
+    const summary = countByFacility(rows);
+    $("#bigcount").textContent = summary.total;
+    $("#st-total").textContent = summary.total;
+    $("#st-outdoor").textContent = summary.outdoor;
+    $("#st-badminton").textContent = summary.badminton;
+    $("#st-pool").textContent = summary.pool;
+    $("#st-track").textContent = summary.track;
   }
 
-  // ------------ สรุปเพื่อทำกราฟ ------------
-  // รวม/เฉพาะสนาม: นับตามบทบาท
+  // ------------ สรุปเพื่อทำกราฟ (ใช้จำนวนจริงจาก API) ------------
+  // รวมเป็นผลรวม (นิสิต/บุคลากร) จากรายการทั้งหมดใน list
   function tallyRole(list) {
     let student = 0,
       staff = 0;
-    list.forEach((r) => (r.role === "staff" ? staff++ : student++));
+    list.forEach((r) => {
+      student += Number(r.student_count || 0);
+      staff += Number(r.staff_count || 0);
+    });
     return { student, staff, total: student + staff };
   }
-  // แยกตามสนาม -> {facility: {student, staff}}
+
+  // แยกตามสนาม -> {outdoor:{student,staff}, ...}
   function tallyByFacilityAndRole(list) {
     const m = {
       outdoor: { student: 0, staff: 0 },
@@ -154,11 +183,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     list.forEach((r) => {
       if (!m[r.facility]) return;
-      if (r.role === "staff") m[r.facility].staff++;
-      else m[r.facility].student++;
+      m[r.facility].student += Number(r.student_count || 0);
+      m[r.facility].staff += Number(r.staff_count || 0);
     });
     return m;
   }
+
   // เฉพาะสนาม กลุ่มตาม sub_facility -> Map(sub, {student, staff})
   function tallyBySubFacility(list) {
     const m = new Map();
@@ -166,31 +196,32 @@ document.addEventListener("DOMContentLoaded", () => {
       const sub = r.sub_facility || "ไม่ระบุ";
       if (!m.has(sub)) m.set(sub, { student: 0, staff: 0 });
       const x = m.get(sub);
-      if (r.role === "staff") x.staff++;
-      else x.student++;
+      x.student += Number(r.student_count || 0);
+      x.staff += Number(r.staff_count || 0);
     });
     return m;
   }
-  // 30 วันล่าสุด (label ไทยสั้น) -> {labels, student[], staff[]}
+
+  // 30 วันล่าสุด: {labels, student[], staff[]}
   function tallyLastNDays(list, n = 30) {
     const today = new Date();
     const days = [];
     for (let i = n - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      days.push(ymdLocal(d));
+      days.push(ymdLocal(d)); // yyyy-mm-dd
     }
     const map = new Map(days.map((k) => [k, { student: 0, staff: 0 }]));
     list.forEach((r) => {
-      const k = r.session_date; // YYYY-MM-DD
+      const k = r.session_date; // yyyy-mm-dd
       if (!map.has(k)) return;
       const o = map.get(k);
-      if (r.role === "staff") o.staff++;
-      else o.student++;
+      o.student += Number(r.student_count || 0);
+      o.staff += Number(r.staff_count || 0);
     });
     const labels = days.map((k) => {
       const [y, m, d] = k.split("-");
-      return `${d}/${m}`; // dd/mm
+      return `${d}/${m}`;
     });
     const student = days.map((k) => map.get(k).student);
     const staff = days.map((k) => map.get(k).staff);
@@ -204,9 +235,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderPie(ctx) {
-    // เงื่อนไข:
-    // - all    : วงกลม “สัดส่วนรวมต่อสนาม” (รวม นิสิต+บุคลากร)
-    // - เฉพาะ : วงกลม “นิสิต vs บุคลากร” ภายในสนามนั้น
+    // all: วงกลม “สัดส่วนรวมต่อสนาม” (รวม นิสิต+บุคลากร)
+    // เฉพาะสนาม: วงกลม “นิสิต vs บุคลากร” ภายในสนามนั้น
     if (facilityFilter === "all") {
       const byFac = tallyByFacilityAndRole(rows);
       const labels = [
@@ -291,9 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderBar(ctx) {
-    // เงื่อนไข:
-    // - all    : กราฟแท่งเปรียบเทียบ “นิสิต/บุคลากร” ของแต่ละสนาม (stacked)
-    // - เฉพาะ : กราฟแท่ง “นิสิต/บุคลากร” แยกตามสนามย่อย (grouped)
+    // all: stacked เปรียบเทียบ “นิสิต/บุคลากร” ของแต่ละสนาม
+    // เฉพาะสนาม: grouped แยกตามสนามย่อย
     if (facilityFilter === "all") {
       const byFac = tallyByFacilityAndRole(rows);
       const labels = [
@@ -404,8 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderLine(ctx) {
-    // เงื่อนไข:
-    // - all/เฉพาะสนาม: เส้น “จำนวนผู้เข้าใช้งาน 30 วันล่าสุด” (แสดงทั้ง นิสิต/บุคลากร)
+    // เส้นแยกนิสิต/บุคลากร 30 วันล่าสุด (all หรือ เฉพาะสนาม)
     const list =
       facilityFilter === "all"
         ? rows
@@ -458,12 +486,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderChart() {
     const ctx = $("#chart").getContext("2d");
-    // ล้าง chart เดิม
     if (chartInstance) {
       chartInstance.destroy();
       chartInstance = null;
     }
-
     if (viewMode === "pie") return renderPie(ctx);
     if (viewMode === "bar") return renderBar(ctx);
     if (viewMode === "line") return renderLine(ctx);
@@ -494,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     load();
   });
 
-  // ปุ่มสลับมุมมอง
+  // ปุ่มสลับมุมมองกราฟ
   $("#viewToggle")?.addEventListener("click", (e) => {
     const b = e.target.closest("[data-view]");
     if (!b) return;
@@ -503,11 +529,6 @@ document.addEventListener("DOMContentLoaded", () => {
       x.classList.toggle("active", x.dataset.view === viewMode),
     );
     renderChart();
-  });
-
-  // PDF viewer
-  $("#btnOpenViewer")?.addEventListener("click", (e) => {
-    // ใช้ href ที่ template ใส่ไว้แล้ว
   });
 
   // โหลดครั้งแรก

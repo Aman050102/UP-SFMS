@@ -335,3 +335,8 @@ tbody tr:hover {
     color: #fff;
   }
 }
+td:nth-last-child(1) {
+  text-align: right;
+  font-weight: 700;
+  color: var(--primary-700);
+}
