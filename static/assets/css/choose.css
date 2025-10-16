@@ -386,3 +386,21 @@ main {
     height: 46px;
   }
 }
+.date-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  background: linear-gradient(90deg, #6f4ab4, #b58fff);
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(111, 74, 180, 0.25);
+  margin: 10px auto;
+  animation: fadeInDate 0.5s ease;
+}
+@keyframes fadeInDate {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

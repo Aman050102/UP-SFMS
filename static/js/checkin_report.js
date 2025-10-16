@@ -111,55 +111,51 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateTableHeader() {
-    $("#thead").innerHTML = `
-      <tr>
-        <th scope="col">เวลา</th>
-        <th scope="col">วันที่</th>
-        <th scope="col">สนาม</th>
-        <th scope="col">สนามย่อย</th>
-        <th scope="col">กลุ่มเป้าหมาย</th>
-        <th scope="col" style="text-align:center;">จำนวนผู้ใช้งาน</th>
-      </tr>`;
-    $("#tableHeadText").textContent =
-      "เวลา · วันที่ · สนาม · สนามย่อย · กลุ่มเป้าหมาย · จำนวนผู้ใช้งาน";
-  }
+  $("#thead").innerHTML = `
+    <tr>
+      <th scope="col">เวลา</th>
+      <th scope="col">วันที่</th>
+      <th scope="col">สนาม</th>
+      <th scope="col">สนามย่อย</th>
+      <th scope="col">นิสิต</th>
+      <th scope="col">บุคลากร</th>
+      <th scope="col" style="text-align:right;">รวม</th>
+    </tr>`;
+  $("#tableHeadText").textContent =
+    "เวลา · วันที่ · สนาม · สนามย่อย · นิสิต · บุคลากร · รวม";
+}
 
-  function renderCountsAndTable() {
-    updateTableHeader();
-    const tb = $("#table tbody");
-    tb.innerHTML = "";
+function renderCountsAndTable() {
+  updateTableHeader();
+  const tb = $("#table tbody");
+  tb.innerHTML = "";
 
-    rows.forEach((r) => {
-      const sc = Number(r.student_count || 0);
-      const tc = Number(r.staff_count || 0);
-      const totalCount = sc + tc;
+  rows.forEach((r) => {
+    const sc = Number(r.student_count || 0);
+    const tc = Number(r.staff_count || 0);
+    const total = sc + tc;
 
-      // กลุ่มเป้าหมาย (แสดงตามข้อมูลจริงของแถว)
-      let targetText = "-";
-      if (sc > 0 && tc > 0) targetText = "นิสิต/บุคลากร";
-      else if (sc > 0) targetText = "นิสิต";
-      else if (tc > 0) targetText = "บุคลากร";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${fmtTime(r.ts)}</td>
+      <td>${r.session_date}</td>
+      <td>${FAC_NAME[r.facility] || r.facility}</td>
+      <td>${r.sub_facility || "-"}</td>
+      <td style="text-align:center;">${sc.toLocaleString()}</td>
+      <td style="text-align:center;">${tc.toLocaleString()}</td>
+      <td style="text-align:right;font-weight:700;color:var(--primary-700)">${total.toLocaleString()}</td>`;
+    tb.appendChild(tr);
+  });
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${fmtTime(r.ts)}</td>
-        <td>${r.session_date}</td>
-        <td>${FAC_NAME[r.facility] || r.facility}</td>
-        <td>${r.sub_facility || "-"}</td>
-        <td>${targetText}</td>
-        <td style="text-align:center;">${totalCount.toLocaleString()}</td>`;
-      tb.appendChild(tr);
-    });
-
-    // รวมจำนวนผู้ใช้งานทั้งหมดตามสนาม
-    const summary = countByFacility(rows);
-    $("#bigcount").textContent = summary.total;
-    $("#st-total").textContent = summary.total;
-    $("#st-outdoor").textContent = summary.outdoor;
-    $("#st-badminton").textContent = summary.badminton;
-    $("#st-pool").textContent = summary.pool;
-    $("#st-track").textContent = summary.track;
-  }
+  // รวมต่อสนาม (ใช้เป็นกล่อง summary ด้านบน)
+  const summary = countByFacility(rows);
+  $("#bigcount").textContent = summary.total;
+  $("#st-total").textContent = summary.total;
+  $("#st-outdoor").textContent = summary.outdoor;
+  $("#st-badminton").textContent = summary.badminton;
+  $("#st-pool").textContent = summary.pool;
+  $("#st-track").textContent = summary.track;
+}
 
   // ------------ สรุปเพื่อทำกราฟ (ใช้จำนวนจริงจาก API) ------------
   // รวมเป็นผลรวม (นิสิต/บุคลากร) จากรายการทั้งหมดใน list

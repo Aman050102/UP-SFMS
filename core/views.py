@@ -308,21 +308,14 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     # สร้าง event
     evt = _create_event(request, facility, action, sub=sub)
 
-    # ถ้ามีฟิลด์ students/staff ในโมเดล ให้บันทึก
-    changed = False
-    if hasattr(evt, "students"):
-        evt.students = max(0, int(students_in))
-        changed = True
-    if hasattr(evt, "staff"):
-        evt.staff = max(0, int(staff_in))
-        changed = True
-    if changed:
-        evt.save(update_fields=[f for f in ["students","staff"] if hasattr(evt, f)])
+    # บันทึกจำนวนนิสิต/บุคลากร “ลงโมเดล” เสมอ
+    evt.students = max(0, int(students_in))
+    evt.staff    = max(0, int(staff_in))
+    evt.save(update_fields=["students", "staff"])
 
     local_dt = timezone.localtime(evt.occurred_at)
     role = "staff" if (evt.user and evt.user.is_staff) else "student"
 
-    # ส่งค่ากลับ รวมทั้งจำนวนที่บันทึก (หรือ 0 ถ้าไม่มีฟิลด์)
     return JsonResponse(
         {
             "ok": True,
@@ -333,31 +326,10 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
             "role": role,
             "ts": local_dt.isoformat(),
             "session_date": local_dt.date().isoformat(),
-            "student_count": int(getattr(evt, "students", 0) or 0),
-            "staff_count": int(getattr(evt, "staff", 0) or 0),
+            "student_count": int(evt.students),
+            "staff_count": int(evt.staff),
         }
     )
-
-# Quick pool API
-@login_required
-@csrf_exempt
-def pool_checkin(request: HttpRequest) -> JsonResponse:
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
-    _lock_pool(request)
-    return JsonResponse({"status": "ok", "locked": True})
-
-@login_required
-@csrf_exempt
-def pool_checkout(request: HttpRequest) -> JsonResponse:
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "Invalid method"}, status=405)
-    if not _is_pool_locked(request):
-        return JsonResponse({"status": "noop", "locked": False, "message": "Not checked in"})
-    _unlock_pool(request)
-    request.session["pool_last_checkout_at"] = timezone.now().isoformat()
-    request.session.modified = True
-    return JsonResponse({"status": "ok", "locked": False, "message": "Checked out"})
 
 # =============================================================================
 # รายงานเช็คอิน (แสดงผล + API)
@@ -433,6 +405,7 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
             }
         )
     return JsonResponse(rows, safe=False)
+
 # =============================================================================
 # ยืม–คืนอุปกรณ์ (หน้า + API + สถิติ)
 # =============================================================================
@@ -475,7 +448,7 @@ def equip_borrow_api(request: HttpRequest) -> JsonResponse:
     if qty < 1:
         return JsonResponse({"message": "จำนวนไม่ถูกต้อง"}, status=400)
 
-    # ✅ ตรวจรหัสนิสิต: ขึ้นต้นด้วย 6 และมีทั้งหมด 8 หลัก
+    #  ตรวจรหัสนิสิต: ขึ้นต้นด้วย 6 และมีทั้งหมด 8 หลัก
     if not re.fullmatch(r"6\d{7}", student_id):
         return JsonResponse(
             {"message": "รหัสนิสิตต้องขึ้นต้นด้วยเลข 6 และมีทั้งหมด 8 หลักเท่านั้น"},

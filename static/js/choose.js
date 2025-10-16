@@ -106,9 +106,11 @@ function updateFormUI() {
 }
 
 // เรียก API (ตัวอย่าง: ถ้าไม่มี backend จะโชว์ overlay เฉย ๆ)
+// เรียก API จริง, ล้างช่อง, ไม่ redirect
 async function checkin(facility, sub = null) {
   const submitBtn = $id("submitBtn");
   const err = $id("formError");
+
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.dataset.loading = "1";
@@ -119,37 +121,97 @@ async function checkin(facility, sub = null) {
     err.textContent = "";
   }
 
+  // เอา URL จาก <main data-api-check-url="...">
+  const mainEl = document.querySelector("main");
+  const API_CHECK_URL = mainEl?.dataset.apiCheckUrl;
+  if (!API_CHECK_URL) {
+    if (err) {
+      err.textContent = "ไม่พบ URL ของ API (data-api-check-url)";
+      err.style.display = "block";
+    }
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.removeAttribute("data-loading");
+      submitBtn.textContent = "ตกลง";
+    }
+    return;
+  }
+
+  const studentsVal = String(parseInt($id("students")?.value || "0", 10));
+  const staffVal    = String(parseInt($id("staff")?.value || "0", 10));
+
   const body = new URLSearchParams();
   body.set("facility", facility);
+  body.set("action", "in");
   if (sub) body.set("sub", sub);
-  body.set("students", String(parseInt($id("students").value || "0", 10)));
-  body.set("staff", String(parseInt($id("staff").value || "0", 10)));
+  body.set("students", studentsVal);
+  body.set("staff", staffVal);
 
   let ok = false;
   try {
-    // ถ้าใช้งานกับ Django API จริง ให้ยกเลิกส่วนจำลองด้านล่าง แล้วใช้ fetch URL จริง
-    // const res = await fetch("/api/check-event/", {
-    //   method:"POST",
-    //   headers:{ "X-CSRFToken": CSRFTOKEN || "", "X-Requested-With":"XMLHttpRequest", "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
-    //   body:body.toString(), credentials:"same-origin",
-    // });
-    // if(!res.ok) throw new Error("HTTP "+res.status);
-    // const data = await res.json().catch(()=>({action:"in"}));
-    // showDone(data.action || "in");
+    const res = await fetch(API_CHECK_URL, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": CSRFTOKEN || "",
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: body.toString(),
+      credentials: "same-origin",
+    });
 
-    // ====== DEMO (ไม่มี backend): แสดง overlay เลย ======
-    await new Promise((r) => setTimeout(r, 600));
-    showDone("in");
+    const ct = res.headers.get("content-type") || "";
+    if (!res.ok || !ct.includes("application/json")) {
+      throw new Error(`HTTP ${res.status} - ไม่สามารถบันทึกได้`);
+    }
+
+    const data = await res.json();
+    if (data.ok === false) {
+      const msg = data.message || data.error || "ไม่สามารถบันทึกได้";
+      throw new Error(msg);
+    }
+
+    // แสดง overlay สำเร็จ
+    showDone(data.action || "in");
     ok = true;
 
-    // เก็บค่าไว้เติมครั้งถัดไป
-    localStorage.setItem("lastFacility", facility);
-    if (sub) localStorage.setItem("lastSubFacility", sub);
-    localStorage.setItem("lastStudents", $id("students").value || "0");
-    localStorage.setItem("lastStaff", $id("staff").value || "0");
+    // ✅ ล้างช่องอินพุต + รีเฟรชปุ่ม
+    if ($id("students")) $id("students").value = "";
+    if ($id("staff")) $id("staff").value = "";
+    updateFormUI();
+
+    // (ตัวเลือก) ดึงข้อมูล “วันนี้” แบบเบา ๆ ไว้ใช้ต่อ (แค่ log ไว้ก่อน)
+    try {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      const ymd = `${y}-${m}-${d}`;
+
+      const apiRowsUrl =
+        mainEl?.dataset.apiCheckinsUrl || // ถ้าคุณฝัง data-api-checkins-url ไว้
+        (window.API_CHECKINS_URL ?? null); // หรือประกาศ global อื่น ๆ
+
+      if (apiRowsUrl) {
+        const qs = new URLSearchParams({
+          from: ymd,
+          to: ymd,
+          facility: "", // เว้นว่าง = ทุกสนาม; จะกรองเฉพาะก็ใส่ facility ได้
+        }).toString();
+        const r = await fetch(`${apiRowsUrl}?${qs}`, { credentials: "same-origin" });
+        if (r.ok) {
+          const rows = await r.json();
+          console.log("ยอดเช็คอินวันนี้:", rows.length, rows);
+          // ถ้าจะอัปเดต UI ตรงไหน ก็ทำต่อจากตรงนี้ได้เลย
+          // เช่น: $id("todayCount")?.textContent = rows.length;
+        }
+      }
+    } catch (_) {
+      // เงียบไว้ ไม่ให้รบกวน UX
+    }
   } catch (e) {
     if (err) {
-      err.textContent = "บันทึกไม่สำเร็จ ลองอีกครั้งได้เลย";
+      err.textContent = (e && e.message) || "บันทึกไม่สำเร็จ ลองอีกครั้งได้เลย";
       err.style.display = "block";
     }
   } finally {
@@ -388,3 +450,28 @@ document.addEventListener("DOMContentLoaded", init);
     if (e.key === "Escape") menus.forEach((d) => (d.open = false));
   });
 })();
+// --- หลังบันทึกสำเร็จ ---
+ok = true;
+
+// ✅ เก็บค่าไว้ (ไม่ล้าง) + จำลง localStorage เพื่อให้เปิดมารอบหน้าเห็นตัวเลขเดิม
+localStorage.setItem("lastStudents", studentsVal);
+localStorage.setItem("lastStaff", staffVal);
+localStorage.setItem("lastFacility", facility);
+if (sub) localStorage.setItem("lastSubFacility", sub);
+
+// ✅ แจ้งทุกแท็บ/หน้ารายงานให้รีเฟรช (BroadcastChannel)
+try {
+  const ch = new BroadcastChannel("checkins");
+  ch.postMessage({
+    type: "checkin:created",
+    payload: {
+      ts: data.ts,
+      session_date: data.session_date,
+      facility: data.facility,
+      sub_facility: data.sub_facility || "",
+      student_count: Number(data.student_count || studentsVal || 0),
+      staff_count:   Number(data.staff_count   || staffVal   || 0),
+    },
+  });
+  ch.close();
+} catch {}
