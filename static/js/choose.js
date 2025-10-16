@@ -138,7 +138,7 @@ async function checkin(facility, sub = null) {
   }
 
   const studentsVal = String(parseInt($id("students")?.value || "0", 10));
-  const staffVal    = String(parseInt($id("staff")?.value || "0", 10));
+  const staffVal = String(parseInt($id("staff")?.value || "0", 10));
 
   const body = new URLSearchParams();
   body.set("facility", facility);
@@ -198,7 +198,9 @@ async function checkin(facility, sub = null) {
           to: ymd,
           facility: "", // เว้นว่าง = ทุกสนาม; จะกรองเฉพาะก็ใส่ facility ได้
         }).toString();
-        const r = await fetch(`${apiRowsUrl}?${qs}`, { credentials: "same-origin" });
+        const r = await fetch(`${apiRowsUrl}?${qs}`, {
+          credentials: "same-origin",
+        });
         if (r.ok) {
           const rows = await r.json();
           console.log("ยอดเช็คอินวันนี้:", rows.length, rows);
@@ -470,7 +472,7 @@ try {
       facility: data.facility,
       sub_facility: data.sub_facility || "",
       student_count: Number(data.student_count || studentsVal || 0),
-      staff_count:   Number(data.staff_count   || staffVal   || 0),
+      staff_count: Number(data.staff_count || staffVal || 0),
     },
   });
   ch.close();
