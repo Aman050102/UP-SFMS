@@ -1,97 +1,17 @@
-// static/js/user_equipment.js  (UE JS v2 merged)
+// static/js/user_equipment.js (Logic updated to FILTER PENDING LIST)
 (() => {
-  console.log("UE JS v2 loaded");
-
-  // ===== Utils =====
-  const $ = (s, el = document) => el.querySelector(s);
+  const PAGE = document.body?.dataset?.page || "equipment";
+  const $   = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
-  // ===== Elements =====
-  const form = $("#borrowForm");
-  const sel = $("#equipment");
-  const qty = $("#qty");
-  const btnConfirm = $("#confirmBtn");
-  const sheetBorrow = $("#sheetBorrow");
-
-  const inputSID = $("#studentId");
-  const inputFAC = $("#faculty");
-  const studentError = $("#studentError");
-
-  // ===== Safety: ปุ่มยืนยันต้องเป็น type="button" =====
-  if (btnConfirm && btnConfirm.getAttribute("type") !== "button") {
-    btnConfirm.setAttribute("type", "button");
-  }
-
-  // ===== กันการ submit ทุกรูปแบบ (กด Enter จะไม่ยิงฟอร์ม) =====
-  document.addEventListener("submit", (e) => e.preventDefault());
-  form?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      btnConfirm?.click();
-    }
-  });
-  // กันกด Enter ในช่องรหัสถ้ายังไม่ผ่านรูปแบบ
-  inputSID?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !/^6\d{7}$/.test((inputSID.value || "").trim())) {
-      e.preventDefault();
-    }
-  });
-
-  // ===== Prefill จาก localStorage =====
-  (() => {
-    try {
-      const sid = localStorage.getItem("sfms_sid");
-      const fac = localStorage.getItem("sfms_fac");
-      if (sid && inputSID && !inputSID.value) inputSID.value = sid;
-      if (fac && inputFAC && !inputFAC.value) inputFAC.value = fac;
-    } catch (_) {}
-  })();
-
-  // ===== อ่านสต็อกจากตารางด้านขวา =====
-  const stock = {};
-  $$("#stockList li").forEach((li) => {
-    const name = $("span", li)?.textContent.trim() || "";
-    const left =
-      parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
-    if (name) stock[name] = left;
-  });
-
-  // ===== CSRF =====
+  // ========= CSRF & Fetch helper =========
   function getCookie(name) {
     const m = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
     return m ? decodeURIComponent(m.pop()) : "";
   }
   const CSRF = getCookie("csrftoken");
 
-  // ===== Helpers =====
-  function sanitizeQtyOnInput() {
-    const pos = qty.selectionStart;
-    const raw = qty.value || "";
-    const digits = raw.replace(/\D/g, "").slice(0, 3);
-    if (digits !== raw) {
-      qty.value = digits;
-      try {
-        qty.setSelectionRange(pos, pos);
-      } catch (_) {}
-    }
-  }
-  function clampQtyOnBlur() {
-    let v = parseInt(qty.value, 10);
-    if (!Number.isFinite(v) || v < 1) v = 1;
-    qty.value = String(v);
-  }
-  function updateRow(name, newLeft) {
-    const li = $$("#stockList li").find(
-      (el) => $("span", el)?.textContent.trim() === name,
-    );
-    if (li) $("b", li).textContent = Number(newLeft).toLocaleString();
-  }
-  function openSheet(el) {
-    if (!el) return;
-    el.setAttribute("aria-hidden", "false");
-    setTimeout(() => el.setAttribute("aria-hidden", "true"), 1200);
-  }
-  async function callAPI(url, payload) {
+  async function postJSON(url, payload) {
     const resp = await fetch(url, {
       method: "POST",
       headers: {
@@ -103,130 +23,338 @@
       body: JSON.stringify(payload),
     });
     const data = await resp.json().catch(() => ({}));
-    if (!resp.ok)
-      throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
     return data;
   }
-  function saveLastBorrowToSession({ sid, fac, itemName, qtyBorrow }) {
-    // เก็บ “การยืมล่าสุด” ไว้ให้หน้าคืนสามารถดึงได้
-    try {
-      const raw = sessionStorage.getItem("lastBorrow");
-      const data = raw
-        ? JSON.parse(raw)
-        : { student_id: sid, faculty: fac, items: [] };
-      if (!data.student_id && sid) data.student_id = sid;
-      if (!data.faculty && fac) data.faculty = fac;
 
-      const idx = data.items.findIndex((x) => x.name === itemName);
-      if (idx >= 0) data.items[idx].qty += qtyBorrow;
-      else data.items.push({ name: itemName, qty: qtyBorrow });
+  // ========= TABs =========
+  function initTabs() {
+    const tabBorrow = $("#tabBorrow");
+    const tabReturn = $("#tabReturn");
+    const borrowSection = $("#borrowSection");
+    const returnSection = $("#returnSection");
+    if (!tabBorrow || !tabReturn || !borrowSection || !returnSection) return;
 
-      sessionStorage.setItem("lastBorrow", JSON.stringify(data));
-    } catch (_) {}
+    const showBorrow = () => {
+      tabBorrow.classList.add("active");
+      tabReturn.classList.remove("active");
+      tabBorrow.setAttribute("aria-selected", "true");
+      tabReturn.setAttribute("aria-selected", "false");
+      borrowSection.style.display = "";
+      returnSection.style.display = "none";
+    };
+    const showReturn = () => {
+      tabReturn.classList.add("active");
+      tabBorrow.classList.remove("active");
+      tabReturn.setAttribute("aria-selected", "true");
+      tabBorrow.setAttribute("aria-selected", "false");
+      borrowSection.style.display = "none";
+      returnSection.style.display = "";
+    };
+
+    tabBorrow.addEventListener("click", showBorrow);
+    tabReturn.addEventListener("click", showReturn);
   }
 
-  // ===== Events: จำนวน =====
-  qty?.addEventListener("input", sanitizeQtyOnInput);
-  qty?.addEventListener("blur", clampQtyOnBlur);
-  $$(".qty-btn").forEach((b) => {
-    b.addEventListener("click", () => {
-      const delta = parseInt(b.dataset.delta, 10) || 0;
-      const cur = parseInt(qty.value, 10);
-      const next = Number.isFinite(cur) ? cur + delta : 1 + Math.max(delta, 0);
-      qty.value = String(Math.max(1, next));
+  // ========= Borrow (โหมดยืม) =========
+  function initBorrowPage() {
+    const form        = $("#borrowForm");
+    const sel         = $("#equipment");
+    const qty         = $("#qty");
+    const btnConfirm  = $("#confirmBtn");
+    const sheetBorrow = $("#sheetBorrow");
+    const inputSID    = $("#studentId");
+    const inputFAC    = $("#faculty");
+    const studentErr  = $("#studentError");
+
+    if (!form || !btnConfirm) return;
+
+    document.addEventListener("submit", (e) => e.preventDefault());
+
+    form.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        btnConfirm.click();
+      }
     });
-  });
 
-  // ===== Events: รหัสนิสิต (แสดง/ซ่อน error) =====
-  inputSID?.addEventListener("input", (e) => {
-    const raw = e.target.value || "";
-    const digits = raw.replace(/\D/g, "").slice(0, 8);
-    if (digits !== raw) e.target.value = digits;
+    try {
+      const sid = localStorage.getItem("sfms_sid");
+      const fac = localStorage.getItem("sfms_fac");
+      if (sid && inputSID && !inputSID.value) inputSID.value = sid;
+      if (fac && inputFAC && !inputFAC.value) inputFAC.value = fac;
+    } catch {}
 
-    if (studentError) {
-      if (digits.length === 8) {
-        studentError.style.display = /^6\d{7}$/.test(digits) ? "none" : "block";
-      } else {
-        studentError.style.display = "none";
+    const stock = {};
+    $$("#stockList li").forEach((li) => {
+      const name = $("span", li)?.textContent.trim() || "";
+      const left = parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
+      if (name) stock[name] = left;
+    });
+    const updateStockRow = (name, newLeft) => {
+      const li = $$("#stockList li").find(el => $("span", el)?.textContent.trim() === name);
+      if (li) $("b", li).textContent = Number(newLeft).toLocaleString();
+    };
+
+    const clampQty = () => {
+      let v = parseInt(qty.value, 10);
+      if (!Number.isFinite(v) || v < 1) v = 1;
+      qty.value = String(v);
+    };
+    $$(".qty-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        const d = parseInt(b.dataset.delta, 10) || 0;
+        clampQty();
+        qty.value = String(Math.max(1, (parseInt(qty.value, 10)||1) + d));
+      });
+    });
+
+    inputSID?.addEventListener("input", (e) => {
+      const digits = (e.target.value || "").replace(/\D/g, "").slice(0, 8);
+      e.target.value = digits;
+      studentErr && (studentErr.style.display = (digits.length === 8 && !/^6\d{7}$/.test(digits)) ? "block" : "none");
+    });
+    inputSID?.addEventListener("blur", (e) => {
+      studentErr && (studentErr.style.display = /^6\d{7}$/.test(e.target.value||"") ? "none" : "block");
+    });
+
+    function upsertReturnRow({ student_id, faculty, equipment, addQty }) {
+      const tbody = $("#returnTableBody");
+      if (!tbody) return;
+
+      const emptyRow = $$("tr", tbody).find(tr => tr.children.length === 1);
+      if (emptyRow) emptyRow.remove();
+
+      const rows = $$("tr", tbody);
+      let target = rows.find(tr => {
+        const sid = tr.children[1]?.textContent?.trim() || "";
+        const fac = tr.children[2]?.textContent?.trim() || "";
+        const eq  = tr.children[3]?.textContent?.trim() || "";
+        return (sid === student_id && fac === faculty && eq === equipment);
+      });
+
+      if (!target) {
+        const tr = document.createElement("tr");
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        tr.dataset.borrowDate = today;
+        tr.className = "optimistic-row";
+        tr.innerHTML = `
+          <td>${rows.length + 1}</td>
+          <td>${student_id}</td>
+          <td>${faculty}</td>
+          <td>${equipment}</td>
+          <td>${addQty}</td>
+          <td>${addQty}</td>
+          <td><input type="number" min="1" max="${addQty}" value="${Math.min(1, addQty)}" style="width:80px" /></td>
+          <td><button type="button" class="btn-return">คืน</button></td>
+        `;
+        tbody.appendChild(tr);
+        renumberReturnRows();
+        bindReturnButton(tr);
+        return;
+      }
+
+      const borrowedTd = target.children[4];
+      const pendingTd  = target.children[5];
+      const inputBox   = target.children[6]?.querySelector("input");
+      const newBorrow  = (parseInt(borrowedTd.textContent,10)||0) + addQty;
+      const newPend    = (parseInt(pendingTd.textContent,10)||0) + addQty;
+      borrowedTd.textContent = String(newBorrow);
+      pendingTd.textContent  = String(newPend);
+      if (inputBox) {
+        inputBox.max = String(newPend);
+        if ((parseInt(inputBox.value||"1",10)||1) > newPend) inputBox.value = String(newPend);
       }
     }
-  });
-  inputSID?.addEventListener("blur", (e) => {
-    const v = e.target.value || "";
-    if (studentError)
-      studentError.style.display = /^6\d{7}$/.test(v) ? "none" : "block";
-  });
 
-  // ===== ยืนยันการยืม =====
-  btnConfirm?.addEventListener("click", async (e) => {
-    e.preventDefault();
-    clampQtyOnBlur();
+    btnConfirm.addEventListener("click", async () => {
+      clampQty();
+      const sid = (inputSID?.value || "").trim();
+      const fac = (inputFAC?.value || "").trim();
+      const name = sel?.value?.trim();
+      const n   = parseInt(qty?.value, 10) || 1;
 
-    const sid = (inputSID?.value || "").trim();
-    const fac = (inputFAC?.value || "").trim();
-    const name = sel?.value?.trim();
-    const n = parseInt(qty.value, 10) || 1;
+      if (!name) return alert("กรุณาเลือกอุปกรณ์");
+      if (!/^6\d{7}$/.test(sid)) {
+        alert("รหัสนิสิตต้องเป็นตัวเลข 8 หลัก และขึ้นต้นด้วยเลข 6 เท่านั้น");
+        inputSID?.focus();
+        studentErr && (studentErr.style.display = "block");
+        return;
+      }
 
-    if (!name) {
-      alert("กรุณาเลือกอุปกรณ์");
-      return;
+      try { localStorage.setItem("sfms_sid", sid); localStorage.setItem("sfms_fac", fac); } catch {}
+
+      if (btnConfirm.disabled) return;
+      btnConfirm.disabled = true;
+
+      try {
+        let newStock;
+        if (!window.BORROW_API) {
+          if (n > (stock[name] ?? 0)) throw new Error(`สต็อก "${name}" คงเหลือ ${stock[name] ?? 0} ชิ้น`);
+          stock[name] -= n;
+          newStock = stock[name];
+        } else {
+          const res = await postJSON(window.BORROW_API, {
+            equipment: name,
+            qty: n,
+            student_id: sid,
+            faculty: fac,
+          });
+          newStock = typeof res.stock === "number" ? res.stock : Math.max(0, (stock[name] ?? 0) - n);
+          stock[name] = newStock;
+        }
+
+        updateStockRow(name, newStock);
+        sheetBorrow?.setAttribute("aria-hidden", "false");
+        setTimeout(() => sheetBorrow?.setAttribute("aria-hidden", "true"), 900);
+
+        $("#tabReturn")?.click();
+        upsertReturnRow({ student_id: sid, faculty: fac || "-", equipment: name, addQty: n });
+        $("#returnTableBody tr:last-child input")?.focus();
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "ไม่สามารถทำรายการยืมได้");
+      } finally {
+        btnConfirm.disabled = false;
+      }
+    });
+  }
+
+  // ========= Return (ตารางคืน + ปุ่มคืน) =========
+  function renumberReturnRows() {
+    const visibleRows = $$("#returnTableBody tr").filter(tr => 
+      tr.style.display !== 'none' && !tr.classList.contains('no-results') && tr.children.length > 1
+    );
+    visibleRows.forEach((tr, i) => {
+      const c0 = tr.children[0];
+      if (c0) c0.textContent = String(i + 1);
+    });
+  }
+
+  function bindReturnButton(tr) {
+    const btn = tr.querySelector(".btn-return");
+    if (!btn) return;
+    btn.addEventListener("click", async () => {
+      const sid = tr.children[1]?.textContent?.trim() || "";
+      const eq  = tr.children[3]?.textContent?.trim() || "";
+      const remainTd = tr.children[5];
+      const input = tr.children[6]?.querySelector("input");
+
+      const remain = parseInt(remainTd.textContent || "0", 10) || 0;
+      const qty = Math.max(1, Math.min(remain, parseInt(input?.value || "1", 10) || 1));
+
+      if (!window.RETURN_API) return alert("ยังไม่ได้ตั้งค่า RETURN_API");
+      try {
+        await postJSON(window.RETURN_API, { equipment: eq, qty, student_id: sid });
+        const newRemain = Math.max(0, remain - qty);
+        remainTd.textContent = String(newRemain);
+        if (input) input.max = String(newRemain);
+        if (newRemain === 0) {
+          tr.remove();
+          const tbody = $("#returnTableBody");
+          const remainingDataRows = $$("tr", tbody).filter(r => r.children.length > 1).length;
+          
+          if (tbody && remainingDataRows === 0) {
+              tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">ยังไม่มีรายการค้างคืน</td></tr>';
+          } else {
+             renumberReturnRows();
+          }
+        } else if (input && (parseInt(input.value||"1",10) > newRemain)) {
+          input.value = String(newRemain);
+        }
+      } catch (e) {
+        alert(e?.message || "คืนอุปกรณ์ไม่สำเร็จ");
+      }
+    });
+  }
+
+  function initReturnTable() {
+    $$("#returnTableBody tr").forEach(tr => bindReturnButton(tr));
+  }
+
+  // ========= NEW: Filter Pending Returns List =========
+  function initPendingFilters() {
+    const returnSection = $("#returnSection");
+    if (!returnSection) return;
+
+    const sidInput  = $("#searchStudentId", returnSection);
+    const dateInput = $("#datePick", returnSection);
+    const btnSearch = $("#btnSearch", returnSection);
+    const btnClear  = $("#btnToday", returnSection);
+    const tbody     = $("#returnTableBody", returnSection);
+
+    if (!sidInput || !dateInput || !tbody) return;
+    
+    let noResultsRow = $(".no-results", tbody);
+    if (!noResultsRow) {
+        noResultsRow = document.createElement("tr");
+        noResultsRow.className = "no-results";
+        noResultsRow.style.display = "none";
+        noResultsRow.innerHTML = `<td colspan="8" style="text-align:center;">ไม่พบรายการที่ตรงกับเงื่อนไข</td>`;
+        tbody.appendChild(noResultsRow);
     }
 
-    // ✅ ด่านสุดท้าย: ต้องขึ้นต้นด้วย 6 และมีทั้งหมด 8 หลัก
-    if (!/^6\d{7}$/.test(sid)) {
-      alert("รหัสนิสิตต้องเป็นตัวเลข 8 หลัก และขึ้นต้นด้วยเลข 6 เท่านั้น");
-      if (studentError) studentError.style.display = "block";
-      inputSID?.focus();
-      return;
-    }
+    const runFilter = () => {
+        const sidTerm = sidInput.value.trim();
+        const dateTerm = dateInput.value;
+        const allRows = $$("tr", tbody);
+        let visibleCount = 0;
+        let hasItems = false;
 
-    try {
-      // จำ sid/fac ไว้ในเครื่อง
-      localStorage.setItem("sfms_sid", sid);
-      localStorage.setItem("sfms_fac", fac);
-    } catch (_) {}
+        allRows.forEach(tr => {
+            if (tr.classList.contains("no-results")) return;
+            
+            if (tr.children.length > 1) {
+                hasItems = true;
+                const rowSid = tr.children[1]?.textContent?.trim() || "";
+                const rowDate = tr.dataset.borrowDate || "";
 
-    if (btnConfirm.disabled) return; // กันดับเบิลคลิก
-    btnConfirm.disabled = true;
+                const sidMatch = !sidTerm || rowSid.includes(sidTerm);
+                const dateMatch = !dateTerm || rowDate === dateTerm;
 
-    try {
-      if (!window.BORROW_API) {
-        // โหมด DEMO (ไม่มี API) — ตัดสต็อกจากหน้า
-        if (n > (stock[name] ?? 0))
-          throw new Error(`สต็อก "${name}" คงเหลือ ${stock[name] ?? 0} ชิ้น`);
-        stock[name] = (stock[name] ?? 0) - n;
-        updateRow(name, stock[name]);
-        openSheet(sheetBorrow);
-      } else {
-        // โหมดจริง — เรียก API
-        const res = await callAPI(window.BORROW_API, {
-          equipment: name,
-          qty: n,
-          student_id: sid,
-          faculty: fac,
+                if (sidMatch && dateMatch) {
+                    tr.style.display = "";
+                    visibleCount++;
+                } else {
+                    tr.style.display = "none";
+                }
+            } else {
+                tr.style.display = (sidTerm || dateTerm) ? "none" : "";
+            }
         });
-        stock[name] =
-          typeof res.stock === "number"
-            ? res.stock
-            : Math.max(0, (stock[name] ?? 0) - n);
-        updateRow(name, stock[name]);
-        openSheet(sheetBorrow);
-      }
+        
+        const hasFilter = sidTerm || dateTerm;
+        noResultsRow.style.display = (visibleCount === 0 && hasFilter && hasItems) ? "" : "none";
+        
+        renumberReturnRows();
+    };
 
-      // เก็บรายการยืมล่าสุดไว้ให้หน้าคืนใช้ต่อ
-      saveLastBorrowToSession({ sid, fac, itemName: name, qtyBorrow: n });
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "ไม่สามารถทำรายการยืมได้");
-    } finally {
-      btnConfirm.disabled = false;
-    }
-  });
+    // --- Event Listeners ---
+    sidInput.addEventListener("input", runFilter);
+    dateInput.addEventListener("change", runFilter);
+    btnSearch.addEventListener("click", runFilter);
+    sidInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            runFilter();
+        }
+    });
 
-  // ===== ปุ่มไปหน้า "คืนอุปกรณ์" =====
-  $("#btnReturn")?.addEventListener("click", () => {
-    location.href =
-      document.querySelector('a[href*="user_equipment/return"]')?.href ||
-      "/user/equipment/return/";
-  });
+    btnClear.addEventListener("click", () => {
+        sidInput.value = "";
+        dateInput.value = ""; 
+        runFilter();
+    });
+  }
+
+  // ========= Boot =========
+  if (PAGE === "equipment") {
+    initTabs();
+    initBorrowPage();
+    initReturnTable();
+    initPendingFilters();
+  } else if (PAGE === "equipment-return") {
+    initReturnTable();
+    initPendingFilters();
+  }
 })();

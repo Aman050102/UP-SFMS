@@ -1,5 +1,4 @@
 # core/urls.py
-
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -8,7 +7,7 @@ from . import views
 
 urlpatterns = [
     # --- Auth ---
-    path("", lambda r: redirect("/login/")),  # หน้าแรก → /login/
+    path("", lambda r: redirect("/login/")),
     path("login/", views.login_page, name="login"),
     path("auth/", views.mock_login, name="auth_redirect"),
     path("logout/", views.logout_view, name="logout"),
@@ -27,20 +26,24 @@ urlpatterns = [
     path("user/equipment/return/", views.equipment_return_page, name="user_equipment_return"),
     path("user/borrow-stats/", views.user_borrow_stats, name="user_borrow_stats"),
     path("badminton/", views.badminton_booking, name="badminton_booking"),
+
+    # --- Equipment APIs ---
     path("api/equipment/borrow/", views.equip_borrow_api, name="equip_borrow_api"),
     path("api/equipment/return/", views.equip_return_api, name="equip_return_api"),
+    path("api/equipment/records/", views.api_user_pending_returns, name="equip_records_api"),
+
+    # ✅ เพิ่ม path เดิมให้รองรับกับ equipment_return.html
     path("api/user/pending-returns/", views.api_user_pending_returns, name="api_user_pending_returns"),
 
-    # --- Reports (Checkins page) ---
+    # --- Reports ---
     path("reports/checkins/", views.checkin_report, name="checkin_report"),
     path("api/checkins/", views.api_checkins, name="api_checkins"),
 
-    # --- Borrow stats API + export (อันที่หน้า staff ใช้) ---
+    # --- Borrow Stats ---
     path("api/borrow-stats/", views.api_borrow_stats, name="api_borrow_stats"),
     path("export/borrow-stats.csv", views.export_borrow_stats_csv, name="export_borrow_stats_csv"),
-    path("api/borrow-stats/", views.api_borrow_stats, name="api_borrow_stats"),
 
-    # --- Monthly Report (HTML + JSON + PDF + Meta + Viewer + Builder) ---
+    # --- Monthly Report ---
     path("reports/monthly/<int:year>/<int:month>/", views.monthly_report_page, name="monthly_report"),
     path("api/reports/monthly/<int:year>/<int:month>.json", views.api_monthly_report, name="api_monthly_report"),
     path("reports/monthly/<int:year>/<int:month>/source.pdf", views.monthly_report_source_pdf, name="monthly_report_source_pdf"),
@@ -49,7 +52,7 @@ urlpatterns = [
     path("reports/monthly/<int:year>/<int:month>/build/", views.monthly_report_build_pdf, name="monthly_report_build_pdf"),
     path("reports/monthly/<int:year>/<int:month>/public/", views.monthly_report_page_public, name="monthly_report_public"),
 
-    # --- Staff Equipment APIs ---
+    # --- Staff APIs ---
     path("api/staff/equipments/", views.api_staff_equipments, name="api_staff_equipments"),
     path("api/staff/equipment/<int:pk>/", views.api_staff_equipment_detail, name="api_staff_equipment_detail"),
     path("api/staff/borrow-records/", views.api_staff_borrow_records, name="api_staff_borrow_records"),
@@ -58,6 +61,5 @@ urlpatterns = [
     path("health/", views.health, name="health"),
 ]
 
-# เสิร์ฟไฟล์สื่อ (dev เท่านั้น)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
