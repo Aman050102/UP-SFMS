@@ -11,78 +11,55 @@
       href="{% static 'img/Logo_of_University_of_Phayao.svg.png' %}"
       type="image/png"
     />
- 
+
     <!-- Styles -->
     <link rel="stylesheet" href="{% static 'assets/css/user_global.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/user_header.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/choose.css'%}" />
     <!-- Scripts -->
     <script src="{% static 'js/choose.js' %}" defer></script>
- 
+
     <style></style>
   </head>
   <body>
     <div class="wrap">
       <!-- ======= Header ======= -->
-    <header class="topbar">
-      <div class="brand">
-        <img
-          src="{% static 'img/logoDSASMART.png' %}"
-          alt="DSA"
-          class="brand-logo"
-        />
-      </div>
- 
-      <nav class="mainmenu" aria-label="เมนูหลัก">
-        <ul>
-          <li><a class="toplink" href="{% url 'user_menu' %}">หน้าหลัก</a></li>
- 
-          <li class="has-sub">
-            <details>
-              <summary class="toplink">
-                บริการ
-                <svg class="caret" viewBox="0 0 24 24">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </summary>
-              <ul class="submenu">
-                <li><a href="{% url 'choose' %}">เช็คอินเข้าสนาม</a></li>
-                <li>
-                  <a href="{% url 'user_equipment' %}">ยืม-คืนอุปกรณ์กีฬา</a>
-                </li>
-              </ul>
-            </details>
-          </li>
-        </ul>
-      </nav>
- 
-      <div class="righttools">
-        <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M20 21a8 8 0 0 0-16 0" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          {{ display_name }}
-        </span>
- 
-        <form action="{% url 'logout' %}" method="post" class="logout-form">
-          {% csrf_token %}
-          <button
-            type="submit"
-            class="logout"
-            title="ออกจากระบบ"
-            aria-label="ออกจากระบบ"
-          >
+      <header class="topbar">
+        <div class="brand">
+          <img
+            src="{% static 'img/logoDSASMART.png' %}"
+            alt="DSA"
+            class="brand-logo"
+          />
+        </div>
+
+        <nav class="mainmenu" aria-label="เมนูหลัก">
+          <ul>
+            <li>
+              <a class="toplink" href="{% url 'user_menu' %}">หน้าหลัก</a>
+            </li>
+
+            <li class="has-sub">
+              <details>
+                <summary class="toplink">
+                  บริการ
+                  <svg class="caret" viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </summary>
+                <ul class="submenu">
+                  <li><a href="{% url 'choose' %}">เช็คอินเข้าสนาม</a></li>
+                  <li>
+                    <a href="{% url 'user_equipment' %}">ยืม-คืนอุปกรณ์กีฬา</a>
+                  </li>
+                </ul>
+              </details>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="righttools">
+          <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน">
             <svg
               width="18"
               height="18"
@@ -94,25 +71,53 @@
               stroke-linejoin="round"
               aria-hidden="true"
             >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="M16 17l5-5-5-5" />
-              <path d="M21 12H9" />
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
-            ออกจากระบบ
-          </button>
-        </form>
-      </div>
-    </header>
- 
+            {{ display_name }}
+          </span>
+
+          <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="logout"
+              title="ออกจากระบบ"
+              aria-label="ออกจากระบบ"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <path d="M16 17l5-5-5-5" />
+                <path d="M21 12H9" />
+              </svg>
+              ออกจากระบบ
+            </button>
+          </form>
+        </div>
+      </header>
+
       <!-- ======= Content ======= -->
-      <main data-api-check-url="{% url 'api_check_event' %}" data-report-url="{% url 'checkin_report' %}">
+      <main
+        data-api-check-url="{% url 'api_check_event' %}"
+        data-report-url="{% url 'checkin_report' %}"
+      >
         <span id="todayDate" class="date-badge" aria-live="polite"></span>
         <!-- ชั้นที่ 1 -->
         <section class="card" id="panel-top">
           <h3 class="h3">เลือกประเภทสนาม</h3>
           <div class="grid" id="grid-top"></div>
         </section>
- 
+
         <!-- ชั้นที่ 2 -->
         <section class="card hidden" id="panel-outdoor">
           <div class="toolbar">
@@ -121,11 +126,11 @@
             </button>
             <span class="hint">เลือกชนิดสนามหรือกรอกจำนวนผู้ใช้</span>
           </div>
- 
+
           <h2 id="facilityTitle" class="chip-title" style="display: none">—</h2>
- 
+
           <div class="grid" id="grid-outdoor"></div>
- 
+
           <p
             id="selectedWrap"
             class="hint"
@@ -133,7 +138,7 @@
           >
             สนามที่เลือก : <strong id="selectedName"></strong>
           </p>
- 
+
           <p
             id="formError"
             role="status"
@@ -141,7 +146,7 @@
             class="hint"
             style="display: none; color: #c0392b; margin: 8px 0"
           ></p>
- 
+
           <div class="form-card form-center">
             <div class="row">
               <label for="students">จำนวนนิสิต</label>
@@ -168,7 +173,7 @@
               />
             </div>
           </div>
- 
+
           <div class="action-wrap">
             <button id="submitBtn" class="btn btn-primary" disabled>
               ตกลง
@@ -177,7 +182,7 @@
         </section>
       </main>
     </div>
- 
+
     <!-- Overlay success -->
     <div id="overlay" class="overlay" aria-live="polite">
       <div class="card-ok">

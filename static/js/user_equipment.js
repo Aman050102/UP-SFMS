@@ -1,7 +1,7 @@
 // static/js/user_equipment.js (Logic updated to FILTER PENDING LIST)
 (() => {
   const PAGE = document.body?.dataset?.page || "equipment";
-  const $   = (s, el = document) => el.querySelector(s);
+  const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
   // ========= CSRF & Fetch helper =========
@@ -23,7 +23,8 @@
       body: JSON.stringify(payload),
     });
     const data = await resp.json().catch(() => ({}));
-    if (!resp.ok) throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
+    if (!resp.ok)
+      throw new Error(data?.message || data?.error || `HTTP ${resp.status}`);
     return data;
   }
 
@@ -58,14 +59,14 @@
 
   // ========= Borrow (โหมดยืม) =========
   function initBorrowPage() {
-    const form        = $("#borrowForm");
-    const sel         = $("#equipment");
-    const qty         = $("#qty");
-    const btnConfirm  = $("#confirmBtn");
+    const form = $("#borrowForm");
+    const sel = $("#equipment");
+    const qty = $("#qty");
+    const btnConfirm = $("#confirmBtn");
     const sheetBorrow = $("#sheetBorrow");
-    const inputSID    = $("#studentId");
-    const inputFAC    = $("#faculty");
-    const studentErr  = $("#studentError");
+    const inputSID = $("#studentId");
+    const inputFAC = $("#faculty");
+    const studentErr = $("#studentError");
 
     if (!form || !btnConfirm) return;
 
@@ -88,11 +89,14 @@
     const stock = {};
     $$("#stockList li").forEach((li) => {
       const name = $("span", li)?.textContent.trim() || "";
-      const left = parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
+      const left =
+        parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
       if (name) stock[name] = left;
     });
     const updateStockRow = (name, newLeft) => {
-      const li = $$("#stockList li").find(el => $("span", el)?.textContent.trim() === name);
+      const li = $$("#stockList li").find(
+        (el) => $("span", el)?.textContent.trim() === name,
+      );
       if (li) $("b", li).textContent = Number(newLeft).toLocaleString();
     };
 
@@ -101,41 +105,46 @@
       if (!Number.isFinite(v) || v < 1) v = 1;
       qty.value = String(v);
     };
-    $$(".qty-btn").forEach(b => {
+    $$(".qty-btn").forEach((b) => {
       b.addEventListener("click", () => {
         const d = parseInt(b.dataset.delta, 10) || 0;
         clampQty();
-        qty.value = String(Math.max(1, (parseInt(qty.value, 10)||1) + d));
+        qty.value = String(Math.max(1, (parseInt(qty.value, 10) || 1) + d));
       });
     });
 
     inputSID?.addEventListener("input", (e) => {
       const digits = (e.target.value || "").replace(/\D/g, "").slice(0, 8);
       e.target.value = digits;
-      studentErr && (studentErr.style.display = (digits.length === 8 && !/^6\d{7}$/.test(digits)) ? "block" : "none");
+      studentErr &&
+        (studentErr.style.display =
+          digits.length === 8 && !/^6\d{7}$/.test(digits) ? "block" : "none");
     });
     inputSID?.addEventListener("blur", (e) => {
-      studentErr && (studentErr.style.display = /^6\d{7}$/.test(e.target.value||"") ? "none" : "block");
+      studentErr &&
+        (studentErr.style.display = /^6\d{7}$/.test(e.target.value || "")
+          ? "none"
+          : "block");
     });
 
     function upsertReturnRow({ student_id, faculty, equipment, addQty }) {
       const tbody = $("#returnTableBody");
       if (!tbody) return;
 
-      const emptyRow = $$("tr", tbody).find(tr => tr.children.length === 1);
+      const emptyRow = $$("tr", tbody).find((tr) => tr.children.length === 1);
       if (emptyRow) emptyRow.remove();
 
       const rows = $$("tr", tbody);
-      let target = rows.find(tr => {
+      let target = rows.find((tr) => {
         const sid = tr.children[1]?.textContent?.trim() || "";
         const fac = tr.children[2]?.textContent?.trim() || "";
-        const eq  = tr.children[3]?.textContent?.trim() || "";
-        return (sid === student_id && fac === faculty && eq === equipment);
+        const eq = tr.children[3]?.textContent?.trim() || "";
+        return sid === student_id && fac === faculty && eq === equipment;
       });
 
       if (!target) {
         const tr = document.createElement("tr");
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
         tr.dataset.borrowDate = today;
         tr.className = "optimistic-row";
         tr.innerHTML = `
@@ -155,15 +164,16 @@
       }
 
       const borrowedTd = target.children[4];
-      const pendingTd  = target.children[5];
-      const inputBox   = target.children[6]?.querySelector("input");
-      const newBorrow  = (parseInt(borrowedTd.textContent,10)||0) + addQty;
-      const newPend    = (parseInt(pendingTd.textContent,10)||0) + addQty;
+      const pendingTd = target.children[5];
+      const inputBox = target.children[6]?.querySelector("input");
+      const newBorrow = (parseInt(borrowedTd.textContent, 10) || 0) + addQty;
+      const newPend = (parseInt(pendingTd.textContent, 10) || 0) + addQty;
       borrowedTd.textContent = String(newBorrow);
-      pendingTd.textContent  = String(newPend);
+      pendingTd.textContent = String(newPend);
       if (inputBox) {
         inputBox.max = String(newPend);
-        if ((parseInt(inputBox.value||"1",10)||1) > newPend) inputBox.value = String(newPend);
+        if ((parseInt(inputBox.value || "1", 10) || 1) > newPend)
+          inputBox.value = String(newPend);
       }
     }
 
@@ -172,7 +182,7 @@
       const sid = (inputSID?.value || "").trim();
       const fac = (inputFAC?.value || "").trim();
       const name = sel?.value?.trim();
-      const n   = parseInt(qty?.value, 10) || 1;
+      const n = parseInt(qty?.value, 10) || 1;
 
       if (!name) return alert("กรุณาเลือกอุปกรณ์");
       if (!/^6\d{7}$/.test(sid)) {
@@ -182,7 +192,10 @@
         return;
       }
 
-      try { localStorage.setItem("sfms_sid", sid); localStorage.setItem("sfms_fac", fac); } catch {}
+      try {
+        localStorage.setItem("sfms_sid", sid);
+        localStorage.setItem("sfms_fac", fac);
+      } catch {}
 
       if (btnConfirm.disabled) return;
       btnConfirm.disabled = true;
@@ -190,7 +203,8 @@
       try {
         let newStock;
         if (!window.BORROW_API) {
-          if (n > (stock[name] ?? 0)) throw new Error(`สต็อก "${name}" คงเหลือ ${stock[name] ?? 0} ชิ้น`);
+          if (n > (stock[name] ?? 0))
+            throw new Error(`สต็อก "${name}" คงเหลือ ${stock[name] ?? 0} ชิ้น`);
           stock[name] -= n;
           newStock = stock[name];
         } else {
@@ -200,7 +214,10 @@
             student_id: sid,
             faculty: fac,
           });
-          newStock = typeof res.stock === "number" ? res.stock : Math.max(0, (stock[name] ?? 0) - n);
+          newStock =
+            typeof res.stock === "number"
+              ? res.stock
+              : Math.max(0, (stock[name] ?? 0) - n);
           stock[name] = newStock;
         }
 
@@ -209,7 +226,12 @@
         setTimeout(() => sheetBorrow?.setAttribute("aria-hidden", "true"), 900);
 
         $("#tabReturn")?.click();
-        upsertReturnRow({ student_id: sid, faculty: fac || "-", equipment: name, addQty: n });
+        upsertReturnRow({
+          student_id: sid,
+          faculty: fac || "-",
+          equipment: name,
+          addQty: n,
+        });
         $("#returnTableBody tr:last-child input")?.focus();
       } catch (err) {
         console.error(err);
@@ -222,8 +244,11 @@
 
   // ========= Return (ตารางคืน + ปุ่มคืน) =========
   function renumberReturnRows() {
-    const visibleRows = $$("#returnTableBody tr").filter(tr => 
-      tr.style.display !== 'none' && !tr.classList.contains('no-results') && tr.children.length > 1
+    const visibleRows = $$("#returnTableBody tr").filter(
+      (tr) =>
+        tr.style.display !== "none" &&
+        !tr.classList.contains("no-results") &&
+        tr.children.length > 1,
     );
     visibleRows.forEach((tr, i) => {
       const c0 = tr.children[0];
@@ -236,30 +261,40 @@
     if (!btn) return;
     btn.addEventListener("click", async () => {
       const sid = tr.children[1]?.textContent?.trim() || "";
-      const eq  = tr.children[3]?.textContent?.trim() || "";
+      const eq = tr.children[3]?.textContent?.trim() || "";
       const remainTd = tr.children[5];
       const input = tr.children[6]?.querySelector("input");
 
       const remain = parseInt(remainTd.textContent || "0", 10) || 0;
-      const qty = Math.max(1, Math.min(remain, parseInt(input?.value || "1", 10) || 1));
+      const qty = Math.max(
+        1,
+        Math.min(remain, parseInt(input?.value || "1", 10) || 1),
+      );
 
       if (!window.RETURN_API) return alert("ยังไม่ได้ตั้งค่า RETURN_API");
       try {
-        await postJSON(window.RETURN_API, { equipment: eq, qty, student_id: sid });
+        await postJSON(window.RETURN_API, {
+          equipment: eq,
+          qty,
+          student_id: sid,
+        });
         const newRemain = Math.max(0, remain - qty);
         remainTd.textContent = String(newRemain);
         if (input) input.max = String(newRemain);
         if (newRemain === 0) {
           tr.remove();
           const tbody = $("#returnTableBody");
-          const remainingDataRows = $$("tr", tbody).filter(r => r.children.length > 1).length;
-          
+          const remainingDataRows = $$("tr", tbody).filter(
+            (r) => r.children.length > 1,
+          ).length;
+
           if (tbody && remainingDataRows === 0) {
-              tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">ยังไม่มีรายการค้างคืน</td></tr>';
+            tbody.innerHTML =
+              '<tr><td colspan="8" style="text-align: center;">ยังไม่มีรายการค้างคืน</td></tr>';
           } else {
-             renumberReturnRows();
+            renumberReturnRows();
           }
-        } else if (input && (parseInt(input.value||"1",10) > newRemain)) {
+        } else if (input && parseInt(input.value || "1", 10) > newRemain) {
           input.value = String(newRemain);
         }
       } catch (e) {
@@ -269,7 +304,7 @@
   }
 
   function initReturnTable() {
-    $$("#returnTableBody tr").forEach(tr => bindReturnButton(tr));
+    $$("#returnTableBody tr").forEach((tr) => bindReturnButton(tr));
   }
 
   // ========= NEW: Filter Pending Returns List =========
@@ -277,56 +312,57 @@
     const returnSection = $("#returnSection");
     if (!returnSection) return;
 
-    const sidInput  = $("#searchStudentId", returnSection);
+    const sidInput = $("#searchStudentId", returnSection);
     const dateInput = $("#datePick", returnSection);
     const btnSearch = $("#btnSearch", returnSection);
-    const btnClear  = $("#btnToday", returnSection);
-    const tbody     = $("#returnTableBody", returnSection);
+    const btnClear = $("#btnToday", returnSection);
+    const tbody = $("#returnTableBody", returnSection);
 
     if (!sidInput || !dateInput || !tbody) return;
-    
+
     let noResultsRow = $(".no-results", tbody);
     if (!noResultsRow) {
-        noResultsRow = document.createElement("tr");
-        noResultsRow.className = "no-results";
-        noResultsRow.style.display = "none";
-        noResultsRow.innerHTML = `<td colspan="8" style="text-align:center;">ไม่พบรายการที่ตรงกับเงื่อนไข</td>`;
-        tbody.appendChild(noResultsRow);
+      noResultsRow = document.createElement("tr");
+      noResultsRow.className = "no-results";
+      noResultsRow.style.display = "none";
+      noResultsRow.innerHTML = `<td colspan="8" style="text-align:center;">ไม่พบรายการที่ตรงกับเงื่อนไข</td>`;
+      tbody.appendChild(noResultsRow);
     }
 
     const runFilter = () => {
-        const sidTerm = sidInput.value.trim();
-        const dateTerm = dateInput.value;
-        const allRows = $$("tr", tbody);
-        let visibleCount = 0;
-        let hasItems = false;
+      const sidTerm = sidInput.value.trim();
+      const dateTerm = dateInput.value;
+      const allRows = $$("tr", tbody);
+      let visibleCount = 0;
+      let hasItems = false;
 
-        allRows.forEach(tr => {
-            if (tr.classList.contains("no-results")) return;
-            
-            if (tr.children.length > 1) {
-                hasItems = true;
-                const rowSid = tr.children[1]?.textContent?.trim() || "";
-                const rowDate = tr.dataset.borrowDate || "";
+      allRows.forEach((tr) => {
+        if (tr.classList.contains("no-results")) return;
 
-                const sidMatch = !sidTerm || rowSid.includes(sidTerm);
-                const dateMatch = !dateTerm || rowDate === dateTerm;
+        if (tr.children.length > 1) {
+          hasItems = true;
+          const rowSid = tr.children[1]?.textContent?.trim() || "";
+          const rowDate = tr.dataset.borrowDate || "";
 
-                if (sidMatch && dateMatch) {
-                    tr.style.display = "";
-                    visibleCount++;
-                } else {
-                    tr.style.display = "none";
-                }
-            } else {
-                tr.style.display = (sidTerm || dateTerm) ? "none" : "";
-            }
-        });
-        
-        const hasFilter = sidTerm || dateTerm;
-        noResultsRow.style.display = (visibleCount === 0 && hasFilter && hasItems) ? "" : "none";
-        
-        renumberReturnRows();
+          const sidMatch = !sidTerm || rowSid.includes(sidTerm);
+          const dateMatch = !dateTerm || rowDate === dateTerm;
+
+          if (sidMatch && dateMatch) {
+            tr.style.display = "";
+            visibleCount++;
+          } else {
+            tr.style.display = "none";
+          }
+        } else {
+          tr.style.display = sidTerm || dateTerm ? "none" : "";
+        }
+      });
+
+      const hasFilter = sidTerm || dateTerm;
+      noResultsRow.style.display =
+        visibleCount === 0 && hasFilter && hasItems ? "" : "none";
+
+      renumberReturnRows();
     };
 
     // --- Event Listeners ---
@@ -334,16 +370,16 @@
     dateInput.addEventListener("change", runFilter);
     btnSearch.addEventListener("click", runFilter);
     sidInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            runFilter();
-        }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runFilter();
+      }
     });
 
     btnClear.addEventListener("click", () => {
-        sidInput.value = "";
-        dateInput.value = ""; 
-        runFilter();
+      sidInput.value = "";
+      dateInput.value = "";
+      runFilter();
     });
   }
 

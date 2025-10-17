@@ -238,12 +238,12 @@ main {
   box-shadow: 0 0 0 4px rgba(111, 74, 180, 0.14);
 }
 .chip-title {
-  display: inline-block;        
+  display: inline-block;
   position: relative;
-  left: 50%;                    
-  transform: translateX(-50%);  
-  margin: var(--s-2) auto var(--s-3);  
-  border: 10px solid var(--divider);     
+  left: 50%;
+  transform: translateX(-50%);
+  margin: var(--s-2) auto var(--s-3);
+  border: 10px solid var(--divider);
   border-radius: 999px;
   font-weight: 800;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
