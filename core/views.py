@@ -297,6 +297,7 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     if action not in {"in", "out"}:
         return HttpResponseBadRequest("invalid action")
 
+    # กฎ lock สระว่ายน้ำ
     if facility == "pool":
         if action == "in":
             _lock_pool(request)
@@ -308,10 +309,19 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     # สร้าง event
     evt = _create_event(request, facility, action, sub=sub)
 
-    # บันทึกจำนวนนิสิต/บุคลากร “ลงโมเดล” เสมอ
-    evt.students = max(0, int(students_in))
-    evt.staff    = max(0, int(staff_in))
-    evt.save(update_fields=["students", "staff"])
+    # ✅ ตั้งค่าจำนวนแบบกันแตก ถ้าโมเดล/DB ยังไม่มีคอลัมน์
+    if hasattr(evt, "students"):
+        evt.students = max(0, int(students_in))
+    if hasattr(evt, "staff"):
+        evt.staff = max(0, int(staff_in))
+    try:
+        # ถ้าไม่มี field ใน DB การ save อาจ error เช่น "no such column"
+        evt.save()
+    except Exception as e:
+        return JsonResponse(
+            {"ok": False, "message": f"บันทึกไม่สำเร็จ: {e.__class__.__name__}"},
+            status=500,
+        )
 
     local_dt = timezone.localtime(evt.occurred_at)
     role = "staff" if (evt.user and evt.user.is_staff) else "student"
@@ -326,8 +336,8 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
             "role": role,
             "ts": local_dt.isoformat(),
             "session_date": local_dt.date().isoformat(),
-            "student_count": int(evt.students),
-            "staff_count": int(evt.staff),
+            "student_count": int(getattr(evt, "students", 0) or 0),
+            "staff_count": int(getattr(evt, "staff", 0) or 0),
         }
     )
 
@@ -971,3 +981,4 @@ def user_menu(request: HttpRequest) -> HttpResponse:
 
 def health(request: HttpRequest) -> HttpResponse:
     return HttpResponse("OK")
+
