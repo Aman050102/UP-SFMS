@@ -34,6 +34,7 @@ urlpatterns = [
 
     # ✅ เพิ่ม path เดิมให้รองรับกับ equipment_return.html
     path("api/user/pending-returns/", views.api_user_pending_returns, name="api_user_pending_returns"),
+    path("api/check-event/", views.api_check_event, name="api_check_event"),
 
     # --- Reports ---
     path("reports/checkins/", views.checkin_report, name="checkin_report"),
