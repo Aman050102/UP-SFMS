@@ -14,13 +14,6 @@ body[data-page="equipment-return"] {
   -webkit-tap-highlight-color: transparent;
 }
 
-header.topbar {
-  height: 92px;
-}
-.brand-logo {
-  height: 72px;
-}
-
 /* ===== Layout ===== */
 .wrap {
   width: 100%;
