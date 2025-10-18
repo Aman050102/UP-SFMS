@@ -5,6 +5,7 @@ from typing import Optional
 try:
     # โหลด .env ถ้ามี (ไม่บังคับ)
     from dotenv import load_dotenv  # type: ignore
+
     load_dotenv()
 except Exception:
     pass
@@ -37,5 +38,7 @@ if IS_SUPABASE_CONFIGURED:
         IS_SUPABASE_CONFIGURED = False
 else:
     # เตือนในคอนโซลเฉย ๆ แต่ไม่ raise
-    print("[supabase_client] Supabase is not configured. "
-          "Set SUPABASE_URL and SUPABASE_ANON_KEY in your .env")
+    print(
+        "[supabase_client] Supabase is not configured. "
+        "Set SUPABASE_URL and SUPABASE_ANON_KEY in your .env"
+    )

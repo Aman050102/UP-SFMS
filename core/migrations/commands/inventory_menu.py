@@ -6,19 +6,21 @@ from typing import List, Optional
 from django.core.management.base import BaseCommand
 from core.models import Equipment
 
+
 # =============== Domain ===============
 @dataclass(eq=True, frozen=True)
 class Item:
-    code: str        # map -> Equipment.name
+    code: str  # map -> Equipment.name
     name: str
-    qty: int = 0     # map -> Equipment.stock
-    total: int = 0   # map -> Equipment.total
+    qty: int = 0  # map -> Equipment.stock
+    total: int = 0  # map -> Equipment.total
 
     def with_qty(self, qty: int) -> "Item":
         return Item(self.code, self.name, qty, self.total)
 
     def with_total(self, total: int) -> "Item":
         return Item(self.code, self.name, self.qty, total)
+
 
 # ============ Repository (ORM) ============
 class EquipRepository:
@@ -76,7 +78,9 @@ class InventoryService:
         current = self.repo.get(code)
         if current:
             # ถ้ามีอยู่แล้ว อัปเดตสต็อกและเพดานรวม
-            new_total = current.total if total is None else max(current.total, int(total))
+            new_total = (
+                current.total if total is None else max(current.total, int(total))
+            )
             new = Item(code=code, name=code, qty=qty, total=new_total)
         else:
             new_total = max(qty, int(total) if total is not None else qty)
@@ -138,7 +142,9 @@ class MenuApp:
                 total = self._int_input("เพดานรวม (total) [ว่าง=ไม่เปลี่ยน]: ", None)
                 try:
                     item = self.svc.add_item(code, qty, total)
-                    print(f"✅ บันทึกแล้ว: {item.name} stock={item.qty} total={item.total}\n")
+                    print(
+                        f"✅ บันทึกแล้ว: {item.name} stock={item.qty} total={item.total}\n"
+                    )
                 except Exception as e:
                     print(f"❌ {e}\n")
             elif choice == "2":

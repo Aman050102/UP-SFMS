@@ -16,40 +16,119 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Equipment',
+            name="Equipment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('total', models.PositiveIntegerField(default=0)),
-                ('stock', models.PositiveIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                ("total", models.PositiveIntegerField(default=0)),
+                ("stock", models.PositiveIntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='BorrowRecord',
+            name="BorrowRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('qty', models.PositiveIntegerField(default=1)),
-                ('action', models.CharField(choices=[('borrow', 'Borrow'), ('return', 'Return')], max_length=10)),
-                ('occurred_at', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
-                ('student_id', models.CharField(blank=True, default='', max_length=64)),
-                ('faculty', models.CharField(blank=True, default='', max_length=255)),
-                ('equipment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='records', to='core.equipment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("qty", models.PositiveIntegerField(default=1)),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[("borrow", "Borrow"), ("return", "Return")],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "occurred_at",
+                    models.DateTimeField(
+                        db_index=True, default=django.utils.timezone.now
+                    ),
+                ),
+                ("student_id", models.CharField(blank=True, default="", max_length=64)),
+                ("faculty", models.CharField(blank=True, default="", max_length=255)),
+                (
+                    "equipment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="records",
+                        to="core.equipment",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CheckinEvent',
+            name="CheckinEvent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('facility', models.CharField(choices=[('outdoor', 'Outdoor'), ('badminton', 'Badminton'), ('pool', 'Pool'), ('track', 'Track')], max_length=20)),
-                ('sub_facility', models.CharField(blank=True, default='', max_length=64)),
-                ('action', models.CharField(choices=[('in', 'In'), ('out', 'Out')], max_length=5)),
-                ('occurred_at', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
-                ('students', models.PositiveIntegerField(default=0)),
-                ('staff', models.PositiveIntegerField(default=0)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "facility",
+                    models.CharField(
+                        choices=[
+                            ("outdoor", "Outdoor"),
+                            ("badminton", "Badminton"),
+                            ("pool", "Pool"),
+                            ("track", "Track"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "sub_facility",
+                    models.CharField(blank=True, default="", max_length=64),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[("in", "In"), ("out", "Out")], max_length=5
+                    ),
+                ),
+                (
+                    "occurred_at",
+                    models.DateTimeField(
+                        db_index=True, default=django.utils.timezone.now
+                    ),
+                ),
+                ("students", models.PositiveIntegerField(default=0)),
+                ("staff", models.PositiveIntegerField(default=0)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'indexes': [models.Index(fields=['facility', 'occurred_at'], name='core_checki_facilit_d95bcb_idx')],
+                "indexes": [
+                    models.Index(
+                        fields=["facility", "occurred_at"],
+                        name="core_checki_facilit_d95bcb_idx",
+                    )
+                ],
             },
         ),
     ]

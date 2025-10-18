@@ -7,10 +7,9 @@ from django.http import HttpRequest
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("core.urls")),   # ใช้ core เป็น root
+    path("", include("core.urls")),  # ใช้ core เป็น root
 ]
 # urls.py
-
 
 
 urlpatterns = [
@@ -36,8 +35,10 @@ def root_redirect(request: HttpRequest):
     if request.user.is_authenticated:
         # เลือกไปหน้าสตาฟหรือเมนูผู้ใช้ตามสิทธิ์
         from core.views import _is_staff
+
         return redirect("staff_console" if _is_staff(request.user) else "user_menu")
     return redirect("login")
+
 
 urlpatterns = [
     path("", root_redirect, name="root"),

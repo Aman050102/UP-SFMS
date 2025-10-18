@@ -76,4 +76,3 @@ LOGIN_REDIRECT_URL = "/staff/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
