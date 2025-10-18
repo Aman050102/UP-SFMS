@@ -762,6 +762,7 @@ def staff_equipment(request: HttpRequest) -> HttpResponse:
         },
     )
 
+
 @login_required
 def staff_borrow_ledger(request: HttpRequest) -> HttpResponse:
     if not _is_staff(request.user):
@@ -784,6 +785,7 @@ def api_staff_equipments(request: HttpRequest) -> JsonResponse:
         return _json_bad("Forbidden", 403)
     qs = Equipment.objects.order_by("name").values("id", "name", "total", "stock")
     return JsonResponse({"ok": True, "rows": list(qs)})
+
 
 @login_required
 @require_http_methods(["POST", "PATCH", "DELETE"])
@@ -865,6 +867,7 @@ def api_staff_equipment_detail(request: HttpRequest, pk: int) -> JsonResponse:
     eq.delete()
     return JsonResponse({"ok": True})
 
+
 @login_required
 @require_GET
 def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
@@ -914,6 +917,7 @@ def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
         )
     return JsonResponse({"ok": True, "rows": rows})
 
+
 # =============================================================================
 # User Pending Returns
 # =============================================================================
@@ -957,6 +961,7 @@ def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
 
     rows.sort(key=lambda x: x["equipment"])
     return JsonResponse({"ok": True, "rows": rows, "student_id": sid})
+
 
 # -------------------------------
 # API: บันทึกยืม–คืนรายวัน (ใช้ใน user_equipment.html)
