@@ -30,9 +30,9 @@ urlpatterns = [
     # --- Equipment APIs ---
     path("api/equipment/borrow/", views.equip_borrow_api, name="equip_borrow_api"),
     path("api/equipment/return/", views.equip_return_api, name="equip_return_api"),
-    path("api/equipment/records/", views.api_user_pending_returns, name="equip_records_api"),
+    path("api/equipment/records/", views.equip_records_api, name="equip_records_api"),
 
-    # ✅ เพิ่ม path เดิมให้รองรับกับ equipment_return.html
+    #  เพิ่ม path เดิมให้รองรับกับ equipment_return.html
     path("api/user/pending-returns/", views.api_user_pending_returns, name="api_user_pending_returns"),
     path("api/check-event/", views.api_check_event, name="api_check_event"),
 
