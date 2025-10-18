@@ -20,6 +20,7 @@
   // -----------------------------
   const listEl = $("#equipList");
   const inputName = $("#equipName");
+  const inputStock = $("#equipStock");
   const btnAdd = $("#btnAdd");
   const sheetOk = $("#sheetOk");
 
@@ -32,9 +33,13 @@
     setTimeout(() => sheetOk.setAttribute("aria-hidden", "true"), 1200);
   }
 
-  function numberClamp(n) {
+  function clampInt(n) {
     const x = Number.isFinite(+n) ? +n : 0;
     return Math.max(0, Math.floor(x));
+  }
+
+  function toKeyName(s) {
+    return (s || "").trim().toLowerCase();
   }
 
   // -----------------------------
@@ -44,6 +49,7 @@
     const li = document.createElement("li");
     li.className = "row";
     li.dataset.id = item.id;
+    li.dataset.total = String(item.total ?? 0); // เก็บ total ปัจจุบันไว้ใน DOM
 
     li.innerHTML = `
       <div class="name-wrap">
@@ -62,7 +68,6 @@
         <button class="icon-btn danger del" title="ลบ">🗑️</button>
       </div>
     `;
-
     return li;
   }
 
@@ -73,49 +78,104 @@
     const res = await fetch(API_LIST, {
       headers: { Accept: "application/json" },
     });
-    if (!res.ok) {
-      alert("โหลดรายการไม่สำเร็จ");
-      return;
-    }
+    if (!res.ok) return alert("โหลดรายการไม่สำเร็จ");
     const data = await res.json();
     listEl.innerHTML = "";
 
     const rows = (data && (data.rows || data.data || [])) || [];
-    rows.forEach((it) => listEl.appendChild(rowTemplate(it)));
+    // เก็บ Map ชื่อ → li เพื่อหา duplicate ได้เร็ว (เทียบ lower-case)
+    const byName = new Map();
+    rows.forEach((it) => {
+      const li = rowTemplate(it);
+      listEl.appendChild(li);
+      byName.set(toKeyName(it.name), li);
+    });
+    listEl._byName = byName;
   }
 
   // -----------------------------
-  // Create
+  // Helpers: find existing item by (case-insensitive) name
+  // -----------------------------
+  function findRowByName(name) {
+    const key = toKeyName(name);
+    return listEl?._byName?.get(key) || null;
+  }
+
+  // -----------------------------
+  // Create or Merge (ถ้าชื่อซ้ำ → บวกสต็อก)
   // -----------------------------
   async function addItem() {
     const name = (inputName.value || "").trim();
     if (!name) return alert("กรุณากรอกชื่ออุปกรณ์");
 
-    const res = await fetch(API_ITEM(0), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken(),
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ name, total: 10, stock: 10 }),
-    });
+    const addStock = clampInt(inputStock?.value ?? "0");
+    if (addStock <= 0) return alert("จำนวนสต็อกต้องมากกว่า 0");
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok)
-      return alert(data.message || "เพิ่มรายการไม่สำเร็จ");
+    const existLi = findRowByName(name);
 
+    // กรณีมีชื่อซ้ำ → บวกสต็อกเดิม (PATCH)
+    if (existLi) {
+      const id = existLi.dataset.id;
+      const curStock = clampInt($(".stock", existLi).value || "0");
+      const curTotal = clampInt(existLi.dataset.total || "0");
+
+      const newStock = curStock + addStock;
+      const newTotal = Math.max(curTotal, newStock); // กันโดนฝั่ง server clamp
+
+      const res = await fetch(API_ITEM(id), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken(),
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ stock: newStock, total: newTotal }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok)
+        return alert(data.message || "อัปเดตสต็อกไม่สำเร็จ");
+
+      // sync UI
+      $(".stock", existLi).value = data.row?.stock ?? newStock;
+      existLi.dataset.total = String(data.row?.total ?? newTotal);
+
+      openSheet();
+    } else {
+      // สร้างใหม่ (POST) → ตั้ง total = stock เริ่มต้น
+      const stock = addStock;
+      const total = stock;
+
+      const res = await fetch(API_ITEM(0), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken(),
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ name, total, stock }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok)
+        return alert(data.message || "เพิ่มรายการไม่สำเร็จ");
+      openSheet();
+    }
+
+    // เคลียร์/โฟกัส เพื่อเพิ่มได้ต่อเนื่อง
     inputName.value = "";
+    inputStock.value = "10";
+    inputName.focus();
+
     await fetchList();
-    openSheet();
   }
 
   // -----------------------------
-  // Update (name/stock)
+  // Update (name/stock) — ยอมให้ stock > total โดยส่ง total ≥ stock
   // -----------------------------
   async function saveItem(li) {
     const id = li.dataset.id;
-    const stock = numberClamp($(".stock", li).value || "0");
+    const stock = clampInt($(".stock", li).value || "0");
+
     const nameEl = $(".name", li);
     const nameField = $(".name-edit", li);
     const name = (
@@ -124,6 +184,14 @@
         : nameEl.textContent
     ).trim();
 
+    const curTotal = clampInt(li.dataset.total || "0");
+    const patchBody = { name, stock };
+
+    // ถ้า stock ใหม่มากกว่า total เดิม → อัปเดต total ให้ตาม
+    if (stock > curTotal) {
+      patchBody.total = stock;
+    }
+
     const res = await fetch(API_ITEM(id), {
       method: "PATCH",
       headers: {
@@ -131,7 +199,7 @@
         "X-CSRFToken": csrftoken(),
         Accept: "application/json",
       },
-      body: JSON.stringify({ stock, name }),
+      body: JSON.stringify(patchBody),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -141,12 +209,26 @@
     nameEl.textContent = data.row?.name ?? name;
     nameField.value = data.row?.name ?? name;
     $(".stock", li).value = data.row?.stock ?? stock;
+    li.dataset.total = String(data.row?.total ?? patchBody.total ?? curTotal);
 
     // ออกจากโหมดแก้ชื่อ
     nameField.classList.remove("show");
     nameEl.classList.remove("hide");
 
     openSheet();
+
+    // refresh map ชื่อ
+    await refreshNameMap();
+  }
+
+  async function refreshNameMap() {
+    // สร้าง Map ชื่อใหม่อีกครั้ง (หลัง rename)
+    const byName = new Map();
+    listEl.querySelectorAll(".row").forEach((li) => {
+      const key = toKeyName($(".name", li).textContent);
+      byName.set(key, li);
+    });
+    listEl._byName = byName;
   }
 
   // -----------------------------
@@ -171,10 +253,11 @@
     }
     li.remove();
     openSheet();
+    await refreshNameMap();
   }
 
   // -----------------------------
-  // Inline events per row
+  // Inline events
   // -----------------------------
   function enterEditName(li, focus = true) {
     const name = $(".name", li);
@@ -202,53 +285,75 @@
   inputName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") addItem();
   });
+  inputStock?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addItem();
+  });
 
+  // คลิกในแต่ละแถว
   listEl?.addEventListener("click", (e) => {
     const li = e.target.closest(".row");
     if (!li) return;
 
-    // stepers
+    // stepers — ปรับค่าเฉย ๆ (ยังไม่บันทึก)
     if (e.target.classList.contains("inc")) {
       const fld = $(".stock", li);
-      fld.value = numberClamp(+fld.value + 1);
+      fld.value = clampInt(+fld.value + 1);
       return;
     }
     if (e.target.classList.contains("dec")) {
       const fld = $(".stock", li);
-      fld.value = Math.max(0, numberClamp(+fld.value - 1));
+      fld.value = Math.max(0, clampInt(+fld.value - 1));
       return;
     }
 
     if (e.target.classList.contains("save")) return void saveItem(li);
     if (e.target.classList.contains("del")) return void deleteItem(li);
 
-    // double-click name to edit
-    if (e.target.classList.contains("name")) {
-      enterEditName(li);
-    }
+    if (e.target.classList.contains("name")) enterEditName(li);
   });
 
-  // blur/save/cancel name edit
+  // คีย์ลัดในตาราง
   listEl?.addEventListener("keydown", (e) => {
     const li = e.target.closest(".row");
     if (!li) return;
 
+    // กรณีแก้ชื่อ
     if (e.target.classList.contains("name-edit")) {
       if (e.key === "Enter") {
         e.preventDefault();
-        saveItem(li);
+        return void saveItem(li);
       } else if (e.key === "Escape") {
-        exitEditName(li, /*revert*/ true);
+        return void exitEditName(li, true);
+      }
+    }
+
+    // กรณีแก้สต็อก
+    if (e.target.classList.contains("stock")) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        return void saveItem(li);
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.target.blur();
       }
     }
   });
+
+  // กันค่าติดลบ/ทศนิยมขณะพิมพ์
+  listEl?.addEventListener("input", (e) => {
+    if (!e.target.classList.contains("stock")) return;
+    const n = clampInt(e.target.value);
+    if (String(n) !== e.target.value) e.target.value = String(n);
+  });
+
+  // ออกจากช่องชื่อโดยไม่บันทึก → revert
   listEl?.addEventListener(
     "blur",
     (e) => {
       const li = e.target.closest(".row");
       if (!li) return;
       if (e.target.classList.contains("name-edit")) {
-        // ออกจากโหมดแก้ ถ้ายังไม่บันทึกให้ revert
         exitEditName(li, true);
       }
     },

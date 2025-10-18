@@ -426,7 +426,6 @@
     });
   }
 
-
   // ========= Boot =========
   if (PAGE === "equipment") {
     initTabs();
