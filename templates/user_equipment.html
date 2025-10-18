@@ -15,35 +15,15 @@
     <link rel="stylesheet" href="{% static 'assets/css/user_header.css' %}" />
     <link
       rel="stylesheet"
-      href="{% static 'assets/css/user_equipment.css' %}?v=18"
+      href="{% static 'assets/css/user_equipment.css' %}"
     />
-
-    <script>
-      window.BORROW_API = "{% url 'equip_borrow_api' %}";
-      window.RETURN_API = "{% url 'equip_return_api' %}";
-      window.RECORDS_API = "{% url 'equip_records_api' %}";
-    </script>
 
     <script defer src="{% static 'js/user_header.js' %}"></script>
     <script defer src="{% static 'js/user_equipment.js' %}?v=23"></script>
-
-    <style>
-      .optimistic-row {
-        outline: 2px dashed rgba(0, 0, 0, 0.15);
-        background: rgba(255, 255, 0, 0.08);
-      }
-      .btns {
-        display: flex;
-        gap: 8px;
-        align-items: flex-end;
-      }
-      .btns button {
-        min-width: 90px;
-      }
-    </style>
   </head>
 
   <body data-page="equipment">
+    <!-- ======= ส่วนหัว ======= -->
     <header class="topbar">
       <div class="brand">
         <img
@@ -52,11 +32,13 @@
           class="brand-logo"
         />
       </div>
+
       <nav class="mainmenu" aria-label="เมนูหลัก">
         <ul>
           <li><a class="toplink" href="{% url 'user_menu' %}">หน้าหลัก</a></li>
+
           <li class="has-sub">
-            <details open>
+            <details>
               <summary class="toplink">
                 บริการ
                 <svg class="caret" viewBox="0 0 24 24">
@@ -66,18 +48,14 @@
               <ul class="submenu">
                 <li><a href="{% url 'choose' %}">เช็คอินเข้าสนาม</a></li>
                 <li>
-                  <a href="{% url 'user_equipment' %}" class="active"
-                    >ยืม–คืนอุปกรณ์กีฬา</a
-                  >
-                </li>
-                <li>
-                  <a href="{% url 'badminton_booking' %}">จองสนามแบดมินตัน</a>
+                  <a href="{% url 'user_equipment' %}">ยืม-คืนอุปกรณ์กีฬา</a>
                 </li>
               </ul>
             </details>
           </li>
         </ul>
       </nav>
+
       <div class="righttools">
         <span class="user-btn" aria-label="ผู้ใช้ปัจจุบัน">
           <svg
@@ -96,6 +74,7 @@
           </svg>
           {{ display_name }}
         </span>
+
         <form action="{% url 'logout' %}" method="post" class="logout-form">
           {% csrf_token %}
           <button

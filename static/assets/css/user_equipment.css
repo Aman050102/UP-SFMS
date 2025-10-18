@@ -57,50 +57,6 @@ body[data-page="equipment"] .input:focus-visible {
   }
 }
 
-/* ===== Topbar ===== */
-header.topbar {
-  position: sticky;
-  top: 0;
-  height: 92px;
-  padding-inline: max(16px, env(safe-area-inset-left))
-    max(16px, env(safe-area-inset-right));
-  z-index: 100;
-}
-.brand-logo {
-  height: 72px;
-  width: auto;
-  object-fit: contain;
-}
-@media (min-width: 1440px) {
-  .brand-logo {
-    height: 84px;
-  }
-}
-@media (max-width: 980px) {
-  header.topbar {
-    height: 76px;
-  }
-  .brand-logo {
-    height: 58px;
-  }
-}
-@media (max-width: 640px) {
-  header.topbar {
-    height: 64px;
-  }
-  .brand-logo {
-    height: 48px;
-  }
-}
-.modebar .mode {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-}
-
 /* ===== Layout ===== */
 body[data-page="equipment"] .wrap {
   width: 100%;
@@ -800,4 +756,16 @@ body[data-page="equipment"] #returnSection .table-return tbody td[colspan] {
   body[data-page="equipment"] #returnSection .table-scroll {
     border-radius: 14px;
   }
+}
+.optimistic-row {
+  outline: 2px dashed rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 0, 0.08);
+}
+.btns {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.btns button {
+  min-width: 90px;
 }
