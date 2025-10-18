@@ -131,17 +131,14 @@ def _get_pending_returns() -> List[Dict[str, Any]]:
             continue
         key = (r.student_id, r.equipment.name)
 
-        # **** START: EDITED SECTION ****
-        # ใช้ getattr เพื่อตรวจสอบอย่างปลอดภัยว่ามี 'faculty' หรือไม่
         current_faculty = getattr(r, "faculty", "-") or "-"
-        # **** END: EDITED SECTION ****
 
         if key not in pending_items_agg:
             pending_items_agg[key] = {
                 "borrowed": 0,
                 "returned": 0,
                 "student_id": r.student_id,
-                "faculty": current_faculty,  # <-- ใช้ตัวแปรที่ปลอดภัย
+                "faculty": current_faculty,
                 "equipment_name": r.equipment.name,
                 "borrow_date": r.occurred_at.date(),
             }
@@ -153,11 +150,8 @@ def _get_pending_returns() -> List[Dict[str, Any]]:
         elif r.action == "return":
             agg_item["returned"] += r.qty
 
-        # **** START: EDITED SECTION ****
-        # อัปเดต faculty อย่างปลอดภัย
         if hasattr(r, "faculty") and r.faculty:
             agg_item["faculty"] = r.faculty
-        # **** END: EDITED SECTION ****
 
     pending_items = []
     for key, agg in pending_items_agg.items():
@@ -177,8 +171,6 @@ def _get_pending_returns() -> List[Dict[str, Any]]:
     pending_items.sort(key=lambda x: x["student_id"])
     return pending_items
 
-
-# ... (โค้ดส่วนที่เหลือเหมือนเดิมทั้งหมด ไม่มีการเปลี่ยนแปลง) ...
 
 POOL_LOCK_KEY = "pool_locked"
 
@@ -267,9 +259,6 @@ def _create_event(
         sub_facility=sub or "",
         occurred_at=timezone.now(),
     )
-
-
-# ... (The rest of the file is identical to your original, I'll include it for completeness)
 
 
 # =============================================================================
@@ -373,6 +362,15 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
     action = (_get_post_param(request, "action") or "").strip()
     sub = (_get_post_param(request, "sub") or "").strip()
 
+    try:
+        students_in = int(_get_post_param(request, "students") or 0)
+    except Exception:
+        students_in = 0
+    try:
+        staff_in = int(_get_post_param(request, "staff") or 0)
+    except Exception:
+        staff_in = 0
+
     if facility not in {"outdoor", "badminton", "pool", "track"}:
         return HttpResponseBadRequest("invalid facility")
     if action not in {"in", "out"}:
@@ -389,8 +387,20 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
             _unlock_pool(request)
 
     evt = _create_event(request, facility, action, sub=sub)
+
+    if hasattr(evt, "students"):
+        evt.students = max(0, int(students_in))
+    if hasattr(evt, "staff"):
+        evt.staff = max(0, int(staff_in))
+    try:
+        evt.save()
+    except Exception as e:
+        return JsonResponse(
+            {"ok": False, "message": f"บันทึกไม่สำเร็จ: {e.__class__.__name__}"},
+            status=500,
+        )
+
     local_dt = timezone.localtime(evt.occurred_at)
-    session_date = local_dt.date().isoformat()
     role = "staff" if (evt.user and evt.user.is_staff) else "student"
 
     return JsonResponse(
@@ -398,11 +408,13 @@ def api_check_event(request: HttpRequest) -> JsonResponse | HttpResponseBadReque
             "ok": True,
             "id": evt.id,
             "facility": evt.facility,
-            "sub_facility": evt.sub_facility,
+            "sub_facility": evt.sub_facility or "",
             "action": evt.action,
             "role": role,
             "ts": local_dt.isoformat(),
-            "session_date": session_date,
+            "session_date": local_dt.date().isoformat(),
+            "student_count": int(getattr(evt, "students", 0) or 0),
+            "staff_count": int(getattr(evt, "staff", 0) or 0),
         }
     )
 
@@ -499,6 +511,8 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
     for evt in qs:
         local_dt = timezone.localtime(evt.occurred_at)
         role = "staff" if (evt.user and evt.user.is_staff) else "student"
+        s_cnt = int(getattr(evt, "students", 0) or 0)
+        t_cnt = int(getattr(evt, "staff", 0) or 0)
         rows.append(
             {
                 "ts": local_dt.isoformat(),
@@ -507,6 +521,8 @@ def api_checkins(request: HttpRequest) -> JsonResponse:
                 "sub_facility": evt.sub_facility or "",
                 "action": evt.action,
                 "role": role,
+                "student_count": s_cnt,
+                "staff_count": t_cnt,
             }
         )
     return JsonResponse(rows, safe=False)
@@ -746,7 +762,6 @@ def staff_equipment(request: HttpRequest) -> HttpResponse:
         },
     )
 
-
 @login_required
 def staff_borrow_ledger(request: HttpRequest) -> HttpResponse:
     if not _is_staff(request.user):
@@ -769,7 +784,6 @@ def api_staff_equipments(request: HttpRequest) -> JsonResponse:
         return _json_bad("Forbidden", 403)
     qs = Equipment.objects.order_by("name").values("id", "name", "total", "stock")
     return JsonResponse({"ok": True, "rows": list(qs)})
-
 
 @login_required
 @require_http_methods(["POST", "PATCH", "DELETE"])
@@ -851,7 +865,6 @@ def api_staff_equipment_detail(request: HttpRequest, pk: int) -> JsonResponse:
     eq.delete()
     return JsonResponse({"ok": True})
 
-
 @login_required
 @require_GET
 def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
@@ -901,7 +914,6 @@ def api_staff_borrow_records(request: HttpRequest) -> JsonResponse:
         )
     return JsonResponse({"ok": True, "rows": rows})
 
-
 # =============================================================================
 # User Pending Returns
 # =============================================================================
@@ -913,41 +925,24 @@ def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
         sid = (request.session.get(SESSION_LAST_SID) or "").strip()
     if not sid:
         sid = (request.user.username or "").strip()
+
     if not sid:
         return JsonResponse({"ok": True, "rows": [], "student_id": ""})
 
-    qs = (
-        BorrowRecord.objects.filter(student_id=sid)
-        .select_related("equipment")
-        .order_by("occurred_at")
-    )
+    qs = BorrowRecord.objects.filter(student_id=sid).select_related("equipment")
 
-    # ✅ หา faculty ล่าสุดจากฐานข้อมูล
-    fac = ""
-    if hasattr(BorrowRecord, "faculty"):
-        last_with_fac = (
-            qs.exclude(faculty__isnull=True)
-            .exclude(faculty="")
-            .order_by("-occurred_at")
-            .first()
-        )
-        if last_with_fac:
-            fac = last_with_fac.faculty
-    if not fac:
-        # fallback (เผื่อกรณีเก่าที่ DB ยังไม่มีค่า)
-        fac = request.session.get(SESSION_LAST_FAC) or ""
-
-    # รวมยอดยืม/คืนต่ออุปกรณ์
     agg: Dict[str, Dict[str, int]] = {}
     for r in qs:
         name = r.equipment.name if r.equipment else "-"
-        agg.setdefault(name, {"borrowed": 0, "returned": 0})
+        if name not in agg:
+            agg[name] = {"borrowed": 0, "returned": 0}
         if r.action == "borrow":
             agg[name]["borrowed"] += r.qty
         elif r.action == "return":
             agg[name]["returned"] += r.qty
 
     rows = []
+    fac = request.session.get(SESSION_LAST_FAC, "")
     for name, v in agg.items():
         remaining = max(0, v["borrowed"] - v["returned"])
         if remaining > 0:
@@ -956,13 +951,12 @@ def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
                     "equipment": name,
                     "borrowed": v["borrowed"],
                     "remaining": remaining,
-                    "faculty": fac or "-",  # ✅ แสดงคณะล่าสุดจาก DB
+                    "faculty": fac,
                 }
             )
 
     rows.sort(key=lambda x: x["equipment"])
     return JsonResponse({"ok": True, "rows": rows, "student_id": sid})
-
 
 # -------------------------------
 # API: บันทึกยืม–คืนรายวัน (ใช้ใน user_equipment.html)
