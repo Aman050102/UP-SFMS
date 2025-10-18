@@ -27,9 +27,13 @@ class BorrowRecord(models.Model):
     # สำหรับรายงานว่าใครยืม (ไม่มีได้)
     student_id = models.CharField(max_length=64, blank=True, default="")
 
+    # ✅ เพิ่มฟิลด์คณะ
+    faculty = models.CharField(max_length=255, blank=True, default="")  # <- ใส่บรรทัดนี้
+
     def __str__(self) -> str:
         sid = self.student_id or "-"
-        return f"{sid} {self.action} {self.equipment.name} x{self.qty}"
+        fac = self.faculty or "-"
+        return f"{sid} ({fac}) {self.action} {self.equipment.name} x{self.qty}"
 
 
 class CheckinEvent(models.Model):

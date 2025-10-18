@@ -720,32 +720,47 @@ def api_user_pending_returns(request: HttpRequest) -> JsonResponse:
         sid = (request.session.get(SESSION_LAST_SID) or "").strip()
     if not sid:
         sid = (request.user.username or "").strip()
-
     if not sid:
         return JsonResponse({"ok": True, "rows": [], "student_id": ""})
 
-    qs = BorrowRecord.objects.filter(student_id=sid).select_related("equipment")
+    qs = BorrowRecord.objects.filter(student_id=sid).select_related("equipment").order_by("occurred_at")
 
+    # ✅ หา faculty ล่าสุดจากฐานข้อมูล
+    fac = ""
+    if hasattr(BorrowRecord, "faculty"):
+        last_with_fac = (qs.exclude(faculty__isnull=True)
+                           .exclude(faculty="")
+                           .order_by("-occurred_at")
+                           .first())
+        if last_with_fac:
+            fac = last_with_fac.faculty
+    if not fac:
+        # fallback (เผื่อกรณีเก่าที่ DB ยังไม่มีค่า)
+        fac = (request.session.get(SESSION_LAST_FAC) or "")
+
+    # รวมยอดยืม/คืนต่ออุปกรณ์
     agg: Dict[str, Dict[str, int]] = {}
     for r in qs:
         name = r.equipment.name if r.equipment else "-"
-        if name not in agg:
-            agg[name] = {"borrowed": 0, "returned": 0}
+        agg.setdefault(name, {"borrowed": 0, "returned": 0})
         if r.action == "borrow":
             agg[name]["borrowed"] += r.qty
         elif r.action == "return":
             agg[name]["returned"] += r.qty
 
     rows = []
-    fac = request.session.get(SESSION_LAST_FAC, "")
     for name, v in agg.items():
         remaining = max(0, v["borrowed"] - v["returned"])
         if remaining > 0:
-            rows.append({"equipment": name, "borrowed": v["borrowed"], "remaining": remaining, "faculty": fac})
+            rows.append({
+                "equipment": name,
+                "borrowed": v["borrowed"],
+                "remaining": remaining,
+                "faculty": fac or "-"  # ✅ แสดงคณะล่าสุดจาก DB
+            })
 
     rows.sort(key=lambda x: x["equipment"])
     return JsonResponse({"ok": True, "rows": rows, "student_id": sid})
-
 # -------------------------------
 # API: บันทึกยืม–คืนรายวัน (ใช้ใน user_equipment.html)
 # -------------------------------
