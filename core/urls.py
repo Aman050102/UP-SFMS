@@ -32,11 +32,18 @@ urlpatterns = [
     ),
     path("user/borrow-stats/", views.user_borrow_stats, name="user_borrow_stats"),
     path("badminton/", views.badminton_booking, name="badminton_booking"),
+
     # --- Equipment APIs ---
     path("api/equipment/borrow/", views.equip_borrow_api, name="equip_borrow_api"),
     path("api/equipment/return/", views.equip_return_api, name="equip_return_api"),
     path("api/equipment/records/", views.equip_records_api, name="equip_records_api"),
-    #  เพิ่ม path เดิมให้รองรับกับ equipment_return.html
+    # START: เพิ่ม URL สำหรับ API ตรวจสอบคณะ
+    path(
+        "api/get-faculty-for-student/",
+        views.get_faculty_for_student_api,
+        name="get_faculty_for_student_api",
+    ),
+    # END: เพิ่ม URL สำหรับ API ตรวจสอบคณะ
     path(
         "api/user/pending-returns/",
         views.api_user_pending_returns,

@@ -660,6 +660,30 @@ def equip_return_api(request: HttpRequest) -> JsonResponse:
     return JsonResponse({"ok": True, "equipment": eq.name, "stock": eq.stock})
 
 
+@require_GET
+@login_required
+def get_faculty_for_student_api(request: HttpRequest) -> JsonResponse:
+    """
+    API for checking a student's faculty from their first borrowing record.
+    """
+    student_id = request.GET.get('student_id')
+    if not student_id:
+        return JsonResponse({'error': 'Student ID is required'}, status=400)
+
+    # Find the very first borrow record for this student that has a faculty specified
+    first_record = BorrowRecord.objects.filter(
+        student_id=student_id
+    ).exclude(faculty__exact='').order_by('occurred_at').first()
+
+    if first_record and first_record.faculty:
+        # If a history exists with a faculty, return it
+        return JsonResponse({'faculty': first_record.faculty})
+    else:
+        # If no history exists, return an empty object.
+        # The frontend will interpret this as a new student.
+        return JsonResponse({})
+
+
 @login_required
 def user_borrow_stats(request: HttpRequest) -> HttpResponse:
     today = timezone.localdate().isoformat()

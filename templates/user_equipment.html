@@ -22,6 +22,7 @@
       window.BORROW_API  = "{% url 'equip_borrow_api' %}";
       window.RETURN_API  = "{% url 'equip_return_api' %}";
       window.RECORDS_API = "{% url 'equip_records_api' %}";
+      window.FACULTY_CHECK_API = "{% url 'get_faculty_for_student_api' %}";
     </script>
 
     <script defer src="{% static 'js/user_header.js' %}"></script>
@@ -249,6 +250,16 @@
 
         <div class="table-scroll" id="returnTableWrap">
           <table class="table-return" aria-label="ตารางคืนอุปกรณ์">
+            <colgroup>
+              <col style="width: 72px" />   <!-- ลำดับ -->
+              <col style="width: 140px" />  <!-- รหัสนิสิต -->
+              <col style="width: 220px" />  <!-- คณะ -->
+              <col style="width: 280px" />  <!-- รายการ -->
+              <col style="width: 130px" />  <!-- จำนวนที่ยืม -->
+              <col style="width: 150px" />  <!-- จำนวนค้างคืน -->
+              <col style="width: 160px" />  <!-- จำนวนที่จะคืน -->
+              <col style="width: 110px" />  <!-- ปุ่มคืน -->
+            </colgroup>
             <thead>
               <tr>
                 <th>ลำดับ</th>

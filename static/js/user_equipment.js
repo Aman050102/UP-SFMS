@@ -1,4 +1,4 @@
-// static/js/user_equipment.js (Logic updated to FILTER PENDING LIST)
+// static/js/user_equipment.js (Logic updated to remember first faculty choice)
 (() => {
   const PAGE = document.body?.dataset?.page || "equipment";
   const $ = (s, el = document) => el.querySelector(s);
@@ -70,10 +70,18 @@
 
     if (!form || !btnConfirm) return;
 
-    document.addEventListener("submit", (e) => e.preventDefault());
+    // START: แก้ไข Event Listener เพื่อให้ปุ่ม Logout ทำงานได้
+    document.addEventListener("submit", (e) => {
+      // ตรวจสอบว่าฟอร์มที่ถูก submit ไม่ใช่ฟอร์ม logout
+      if (!e.target.classList.contains('logout-form')) {
+        e.preventDefault(); // ถ้าไม่ใช่ ให้หยุดการทำงาน
+      }
+      // ถ้าใช่ฟอร์ม logout ก็ปล่อยให้มันทำงานตามปกติ
+    });
+    // END: แก้ไข Event Listener
 
     form.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && e.target.tagName !== "BUTTON") {
         e.preventDefault();
         btnConfirm.click();
       }
@@ -93,6 +101,7 @@
         parseInt(($("b", li)?.textContent || "").replace(/,/g, ""), 10) || 0;
       if (name) stock[name] = left;
     });
+
     const updateStockRow = (name, newLeft) => {
       const li = $$("#stockList li").find(
         (el) => $("span", el)?.textContent.trim() === name,
@@ -105,6 +114,7 @@
       if (!Number.isFinite(v) || v < 1) v = 1;
       qty.value = String(v);
     };
+
     $$(".qty-btn").forEach((b) => {
       b.addEventListener("click", () => {
         const d = parseInt(b.dataset.delta, 10) || 0;
@@ -112,20 +122,58 @@
         qty.value = String(Math.max(1, (parseInt(qty.value, 10) || 1) + d));
       });
     });
+    
+    // --- START: LOGIC ใหม่สำหรับตรวจสอบและล็อกคณะ ---
+    const checkFacultyForStudent = async () => {
+        const sid = inputSID.value.trim();
+        if (!/^6\d{7}$/.test(sid)) {
+            inputFAC.disabled = false; // ปลดล็อกถ้า SID ไม่ถูกต้อง
+            return;
+        }
 
+        inputFAC.disabled = true;
+
+        try {
+            const url = `${window.FACULTY_CHECK_API}?student_id=${sid}`;
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error('API request failed');
+            
+            const data = await response.json();
+
+            if (data.faculty) {
+                inputFAC.value = data.faculty;
+                inputFAC.disabled = true;
+            } else {
+                inputFAC.disabled = false;
+            }
+        } catch (error) {
+            console.warn("Could not check faculty from history, enabling manual selection.", error);
+            inputFAC.disabled = false;
+        }
+    };
+    
     inputSID?.addEventListener("input", (e) => {
       const digits = (e.target.value || "").replace(/\D/g, "").slice(0, 8);
       e.target.value = digits;
-      studentErr &&
-        (studentErr.style.display =
-          digits.length === 8 && !/^6\d{7}$/.test(digits) ? "block" : "none");
+      studentErr.style.display =
+        digits.length === 8 && !/^6\d{7}$/.test(digits) ? "block" : "none";
+      if (digits.length === 0) {
+        inputFAC.disabled = false;
+        if(inputFAC.options.length > 0) inputFAC.selectedIndex = 0;
+      }
     });
-    inputSID?.addEventListener("blur", (e) => {
-      studentErr &&
-        (studentErr.style.display = /^6\d{7}$/.test(e.target.value || "")
-          ? "none"
-          : "block");
+
+    inputSID?.addEventListener("blur", checkFacultyForStudent);
+
+    inputSID?.addEventListener("keydown", (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            checkFacultyForStudent();
+            sel.focus();
+        }
     });
+    // --- END: LOGIC ใหม่ ---
 
     function upsertReturnRow({ student_id, faculty, equipment, addQty }) {
       const tbody = $("#returnTableBody");
@@ -137,16 +185,16 @@
       const rows = $$("tr", tbody);
       let target = rows.find((tr) => {
         const sid = tr.children[1]?.textContent?.trim() || "";
-        const fac = tr.children[2]?.textContent?.trim() || "";
         const eq = tr.children[3]?.textContent?.trim() || "";
-        return sid === student_id && fac === faculty && eq === equipment;
+        return sid === student_id && eq === equipment;
       });
 
       if (!target) {
         const tr = document.createElement("tr");
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0];
         tr.dataset.borrowDate = today;
-        tr.className = "optimistic-row";
+        
+        // START: แก้ไขโครงสร้าง HTML ของแถวใหม่ให้ถูกต้อง
         tr.innerHTML = `
           <td>${rows.length + 1}</td>
           <td>${student_id}</td>
@@ -154,9 +202,11 @@
           <td>${equipment}</td>
           <td>${addQty}</td>
           <td>${addQty}</td>
-          <td><input type="number" min="1" max="${addQty}" value="${Math.min(1, addQty)}" style="width:80px" /></td>
+          <td><input type="number" min="1" max="${addQty}" value="1" /></td>
           <td><button type="button" class="btn-return">คืน</button></td>
         `;
+        // END: แก้ไขโครงสร้าง HTML ของแถวใหม่ให้ถูกต้อง
+        
         tbody.appendChild(tr);
         renumberReturnRows();
         bindReturnButton(tr);
@@ -201,27 +251,17 @@
       btnConfirm.disabled = true;
 
       try {
-        let newStock;
-        if (!window.BORROW_API) {
-          if (n > (stock[name] ?? 0))
-            throw new Error(`สต็อก "${name}" คงเหลือ ${stock[name] ?? 0} ชิ้น`);
-          stock[name] -= n;
-          newStock = stock[name];
-        } else {
-          const res = await postJSON(window.BORROW_API, {
+        const res = await postJSON(window.BORROW_API, {
             equipment: name,
             qty: n,
             student_id: sid,
             faculty: fac,
-          });
-          newStock =
-            typeof res.stock === "number"
-              ? res.stock
-              : Math.max(0, (stock[name] ?? 0) - n);
-          stock[name] = newStock;
-        }
-
+        });
+        
+        const newStock = typeof res.stock === "number" ? res.stock : Math.max(0, (stock[name] ?? 0) - n);
+        stock[name] = newStock;
         updateStockRow(name, newStock);
+
         sheetBorrow?.setAttribute("aria-hidden", "false");
         setTimeout(() => sheetBorrow?.setAttribute("aria-hidden", "true"), 900);
 
@@ -232,6 +272,7 @@
           equipment: name,
           addQty: n,
         });
+
         $("#returnTableBody tr:last-child input")?.focus();
       } catch (err) {
         console.error(err);
@@ -261,6 +302,7 @@
     if (!btn) return;
     btn.addEventListener("click", async () => {
       const sid = tr.children[1]?.textContent?.trim() || "";
+      const fac = tr.children[2]?.textContent?.trim() || "";
       const eq = tr.children[3]?.textContent?.trim() || "";
       const remainTd = tr.children[5];
       const input = tr.children[6]?.querySelector("input");
@@ -277,6 +319,7 @@
           equipment: eq,
           qty,
           student_id: sid,
+          faculty: fac,
         });
         const newRemain = Math.max(0, remain - qty);
         remainTd.textContent = String(newRemain);
