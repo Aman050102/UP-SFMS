@@ -382,6 +382,9 @@
       runFilter();
     });
   }
+  window.BORROW_API = "{% url 'equip_borrow_api' %}";
+  window.RETURN_API = "{% url 'equip_return_api' %}";
+  window.RECORDS_API = "{% url 'equip_records_api' %}";
 
   // ========= Boot =========
   if (PAGE === "equipment") {

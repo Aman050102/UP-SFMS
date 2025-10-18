@@ -22,13 +22,12 @@ main {
   color: #2a2640;
 }
 /* === Footer bar สีม่วงติดก้นจอ === */
-.footer-bar{
+.footer-bar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 92px;               /* ปรับความสูงได้ */
-  background: var(--brand);   /* ใช้สีธีมเดิม */
+  height: 92px; /* ปรับความสูงได้ */
+  background: var(--brand); /* ใช้สีธีมเดิม */
   z-index: 5;
 }
-
