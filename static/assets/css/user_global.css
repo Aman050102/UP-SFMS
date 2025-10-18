@@ -8,18 +8,10 @@
   --shadow: 0 16px 40px rgba(40, 22, 90, 0.12);
 }
 
-/* base layout ที่ใช้ทุกหน้า */
-body {
-  margin: 0;
-  font-family:
-    ui-sans-serif, system-ui, "Noto Sans Thai", Roboto, Arial, sans-serif;
-  color: var(--text);
-  background: linear-gradient(180deg, var(--brand) 0 92px, var(--bg) 92px 100%);
-}
 main {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 10px;
   display: grid;
   gap: 24px;
 }
@@ -29,3 +21,14 @@ main {
   margin: 6px 4px 2px;
   color: #2a2640;
 }
+/* === Footer bar สีม่วงติดก้นจอ === */
+.footer-bar{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 92px;               /* ปรับความสูงได้ */
+  background: var(--brand);   /* ใช้สีธีมเดิม */
+  z-index: 5;
+}
+
