@@ -18,6 +18,12 @@
       href="{% static 'assets/css/user_equipment.css' %}"
     />
 
+    <script>
+      window.BORROW_API  = "{% url 'equip_borrow_api' %}";
+      window.RETURN_API  = "{% url 'equip_return_api' %}";
+      window.RECORDS_API = "{% url 'equip_records_api' %}";
+    </script>
+
     <script defer src="{% static 'js/user_header.js' %}"></script>
     <script defer src="{% static 'js/user_equipment.js' %}?v=23"></script>
   </head>
