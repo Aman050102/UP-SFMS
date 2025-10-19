@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.http import HttpRequest
 
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("core.urls")),  # ใช้ core เป็น root
@@ -52,3 +53,4 @@ if settings.DEBUG:
     # ถ้าคุณใช้ collectstatic แล้ว ก็ไม่จำเป็นต้องเสิร์ฟ STATIC_URL ด้วย Django,
     # แต่เพื่อความสะดวกตอน dev สามารถใส่ไว้ได้:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
