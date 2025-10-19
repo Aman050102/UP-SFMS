@@ -1,5 +1,7 @@
 from pathlib import Path
 import os
+import pymysql
+pymysql.install_as_MySQLdb() 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -52,8 +54,14 @@ WSGI_APPLICATION = "UP_SFMS.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "up_sfms_sheet",
+        "USER": "sfms",
+        "PASSWORD": "Sfms!2025_Up",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "unix_socket": "/opt/homebrew/var/mysql/mysql.sock",
+        },
     }
 }
 

@@ -1,8 +1,11 @@
-#!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
 import os
 import sys
 
+# === Force Django to use PyMySQL instead of MySQLdb ===
+import pymysql
+pymysql.install_as_MySQLdb()
+
+# ======================================================
 
 def main():
     """Run administrative tasks."""
